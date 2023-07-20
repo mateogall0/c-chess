@@ -59,7 +59,7 @@ def check_game_state(fen):
         print("Game is still in progress.")
 
 
-def get_possible_moves(fen):
+def get_legal_moves(fen):
     board = chess.Board(fen)
     legal_moves_generator = board.generate_legal_moves()
     return [move.uci() for move in legal_moves_generator]
@@ -70,4 +70,4 @@ def get_possible_moves(fen):
 if __name__ == '__main__':
     fen = 'rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 0 3'
     check_game_state(fen)
-    print(get_possible_moves(fen))
+    print(get_legal_moves(fen))
