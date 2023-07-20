@@ -45,9 +45,8 @@ def make_move(fen, move):
     board = chess.Board(fen)
     move_obj = chess.Move.from_uci(move)
     board.push(move_obj)
-    updated_fen = board.fen()
+    return board.fen()
 
-    return updated_fen
 
 def check_game_state(fen):
     board = chess.Board(fen)
@@ -60,11 +59,15 @@ def check_game_state(fen):
         print("Game is still in progress.")
 
 
-if __name__ == '__main__':
-    fen_checkmate = "rnbqkbnr/ppp1pQp1/7p/8/2Bp4/4P3/PPPP1PPP/RNB1K1NR b KQkq - 0 5"
-    fen_stalemate = "8/8/8/8/8/8/1k6/K7 w - - 0 1"
-    fen_in_progress = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+def get_possible_moves(fen):
+    board = chess.Board(fen)
+    legal_moves_generator = board.generate_legal_moves()
+    return [move.uci() for move in legal_moves_generator]
+    
 
-    check_game_state(fen_checkmate)
-    check_game_state(fen_stalemate)
-    check_game_state(fen_in_progress)
+
+
+if __name__ == '__main__':
+    fen = 'rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 0 3'
+    check_game_state(fen)
+    print(get_possible_moves(fen))
