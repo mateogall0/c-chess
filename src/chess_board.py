@@ -51,12 +51,16 @@ def make_move(fen, move):
 def check_game_state(fen):
     board = chess.Board(fen)
 
+    finished = False
     if board.is_checkmate():
         print("Checkmate!")
+        finished = True
     elif board.is_stalemate():
         print("Stalemate!")
+        finished = True
     else:
         print("Game is still in progress.")
+    return finished
 
 
 def get_legal_moves(fen):
@@ -68,6 +72,14 @@ def get_legal_moves(fen):
 
 
 if __name__ == '__main__':
-    fen = 'rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 0 3'
-    check_game_state(fen)
-    print(get_legal_moves(fen))
+    # Initial position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    while not check_game_state(fen):
+        print_board(fen)
+        move = input("Move: ")
+        if is_move_possible(fen, move):
+            fen = make_move(fen, move)
+        else:
+            print('Move not possible')
+    else:
+        print_board(fen)
