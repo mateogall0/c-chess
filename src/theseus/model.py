@@ -4,6 +4,7 @@
 from tensorflow import keras as K
 import numpy as np
 import chess
+max_moves = 512
 
 
 def fen_to_bitboard(fen):
@@ -30,7 +31,6 @@ def fen_to_bitboard(fen):
 
 
 def new_model(lr=0.001):
-    max_moves = 512
     board_input_layer = K.layers.Input(shape=(8, 8))
     moves_input_layer = K.layers.Input(shape=(max_moves, 64, 64))
 
@@ -45,7 +45,7 @@ def new_model(lr=0.001):
     hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
     hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
     hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
-    output_layer = K.layers.Dense(1, activation='linear')(hidden_layer)
+    output_layer = K.layers.Dense(1, activation='sigmoid')(hidden_layer)
 
     model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
     model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr))
@@ -58,14 +58,15 @@ def make_move(model, fen):
     print(possible_moves)
     brd, moves= fen_to_bitboard(fen)
     output = model.predict(([brd], [moves]))
+    print(output)
     chosen_move_index = int(np.round(output))
+    print(chosen_move_index)
     return possible_moves[chosen_move_index]
      
 
 if __name__ == '__main__':
-    fen = 'rnbqkbn1/ppp2pp1/8/3pp3/8/8/PPPPPPPr/RNBQKBR1 w Qq - 0 5'
-    
+    fen = 'rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq - 0 1'
+
     model = new_model()
 
     print(make_move(model, fen))
-    
