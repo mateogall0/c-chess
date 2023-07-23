@@ -30,29 +30,42 @@ def fen_to_bitboard(fen):
 
 
 def new_model(lr=0.001):
+    max_moves = 512
     board_input_layer = K.layers.Input(shape=(8, 8))
-    moves_input_layer = K.layers.Input(shape=(512, 64, 64))
+    moves_input_layer = K.layers.Input(shape=(max_moves, 64, 64))
 
     board_flattened = K.layers.Flatten()(board_input_layer)
     moves_flattened = K.layers.Flatten()(moves_input_layer)
-
     merged_inputs = K.layers.concatenate([board_flattened, moves_flattened])
 
     hidden_layer = K.layers.Dense(64, activation='relu')(merged_inputs)
-    output_layer = K.layers.Dense(4, activation='linear')(hidden_layer)
+    hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
+    output_layer = K.layers.Dense(1, activation='linear')(hidden_layer)
 
     model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
     model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr))
     return model
 
 
-if __name__ == '__main__':
-    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+def make_move(model, fen):
     board = chess.Board(fen)
     possible_moves = [move.uci() for move in board.legal_moves]
-    model = new_model()
+    print(possible_moves)
     brd, moves= fen_to_bitboard(fen)
-    print(brd)
     output = model.predict(([brd], [moves]))
-    print(output)
+    chosen_move_index = int(np.round(output))
+    return possible_moves[chosen_move_index]
+     
+
+if __name__ == '__main__':
+    fen = 'rnbqkbn1/ppp2pp1/8/3pp3/8/8/PPPPPPPr/RNBQKBR1 w Qq - 0 5'
+    
+    model = new_model()
+
+    print(make_move(model, fen))
     
