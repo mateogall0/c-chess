@@ -20,7 +20,7 @@ def fen_to_bitboard(fen):
                 board_array[row, col] = piece_to_int[piece.symbol()]
 
     possible_moves = [move.uci() for move in board.legal_moves]
-    moves_array = np.zeros((1024, 64, 64), dtype=int)
+    moves_array = np.zeros((512, 64, 64), dtype=int)
     for idx, move in enumerate(possible_moves):
         from_square, to_square = chess.square(ord(move[0]) - ord('a'), 7 - (ord(move[1]) - ord('1'))), \
                                  chess.square(ord(move[2]) - ord('a'), 7 - (ord(move[3]) - ord('1')))
@@ -31,13 +31,15 @@ def fen_to_bitboard(fen):
 
 def new_model(lr=0.001):
     board_input_layer = K.layers.Input(shape=(8, 8))
-    moves_input_layer = K.layers.Input(shape=(1024, 64, 64))
+    moves_input_layer = K.layers.Input(shape=(512, 64, 64))
 
     board_flattened = K.layers.Flatten()(board_input_layer)
-    merged_inputs = K.layers.concatenate([board_flattened, moves_input_layer])
+    moves_flattened = K.layers.Flatten()(moves_input_layer)
 
-    hidden_layer = K.layers.Dense(64, activation='relu')()
-    output_layer = K.layers.Dense(1, activation='linear')(hidden_layer)
+    merged_inputs = K.layers.concatenate([board_flattened, moves_flattened])
+
+    hidden_layer = K.layers.Dense(64, activation='relu')(merged_inputs)
+    output_layer = K.layers.Dense(4, activation='linear')(hidden_layer)
 
     model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
     model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr))
@@ -51,5 +53,6 @@ if __name__ == '__main__':
     model = new_model()
     brd, moves= fen_to_bitboard(fen)
     print(brd)
-    output = model.predict((brd, moves))
+    output = model.predict(([brd], [moves]))
+    print(output)
     
