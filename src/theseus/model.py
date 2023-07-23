@@ -4,7 +4,7 @@
 from tensorflow import keras as K
 import numpy as np
 import chess
-max_moves = 512
+max_moves = 256
 
 
 def fen_to_bitboard(fen):
@@ -21,7 +21,7 @@ def fen_to_bitboard(fen):
                 board_array[row, col] = piece_to_int[piece.symbol()]
 
     possible_moves = [move.uci() for move in board.legal_moves]
-    moves_array = np.zeros((512, 64, 64), dtype=int)
+    moves_array = np.zeros((max_moves, 64, 64), dtype=int)
     for idx, move in enumerate(possible_moves):
         from_square, to_square = chess.square(ord(move[0]) - ord('a'), 7 - (ord(move[1]) - ord('1'))), \
                                  chess.square(ord(move[2]) - ord('a'), 7 - (ord(move[3]) - ord('1')))
@@ -32,11 +32,10 @@ def fen_to_bitboard(fen):
 
 def new_model(lr=0.001):
     board_input_layer = K.layers.Input(shape=(8, 8))
-    moves_input_layer = K.layers.Input(shape=(max_moves, 64, 64))
+    moves_input_layer = K.layers.Input(shape=(1,))
 
     board_flattened = K.layers.Flatten()(board_input_layer)
-    moves_flattened = K.layers.Flatten()(moves_input_layer)
-    merged_inputs = K.layers.concatenate([board_flattened, moves_flattened])
+    merged_inputs = K.layers.concatenate([board_flattened, moves_input_layer])
 
     hidden_layer = K.layers.Dense(64, activation='relu')(merged_inputs)
     hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
@@ -45,7 +44,7 @@ def new_model(lr=0.001):
     hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
     hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
     hidden_layer = K.layers.Dense(64, activation='relu')(hidden_layer)
-    output_layer = K.layers.Dense(1, activation='sigmoid')(hidden_layer)
+    output_layer = K.layers.Dense(1, activation='tanh')(hidden_layer)
 
     model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
     model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr))
@@ -57,7 +56,7 @@ def make_move(model, fen):
     possible_moves = [move.uci() for move in board.legal_moves]
     print(possible_moves)
     brd, moves= fen_to_bitboard(fen)
-    output = model.predict(([brd], [moves]))
+    output = model.predict(([brd], [possible_moves]))
     print(output)
     chosen_move_index = int(np.round(output))
     print(chosen_move_index)
@@ -69,4 +68,4 @@ if __name__ == '__main__':
 
     model = new_model()
 
-    print(make_move(model, fen))
+    #print(make_move(model, fen))
