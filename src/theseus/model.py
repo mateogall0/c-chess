@@ -19,8 +19,7 @@ files = {
 files_reversed = 'abcdefgh'
 
 
-def fen_to_bitboard(fen):
-    board = chess.Board(fen)
+def board_to_bitboard(board):
     piece_to_int = {'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6,
                     'p': -1, 'n': -2, 'b': -3, 'r': -4, 'q': -5, 'k': -6, '.': 0}
 
@@ -43,8 +42,8 @@ def new_model(lr=0.001):
 
     merged_inputs = K.layers.concatenate([board_flattened, moves_flattened])
 
-    hidden_layer = K.layers.Dense(356, activation='relu')(merged_inputs)
-    output_layer = K.layers.Dense(max_moves, activation='softmax')(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(merged_inputs)
+    output_layer = K.layers.Dense(max_moves, activation='relu')(hidden_layer)
 
     model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
     model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr))
@@ -52,37 +51,65 @@ def new_model(lr=0.001):
 
 
 
-def make_move(model, fen):
-    board = chess.Board(fen)
+def make_move(model, board):
     possible_moves = [0 for _ in range(max_moves)]
     for c, i in enumerate(board.legal_moves):
         current_move = 0
         for j, item in enumerate(str(i)):
             if j % 2 == 0:
-                current_move += 10 ** j * files[item]
+                try:
+                    current_move += 10 ** j * files[item]
+                except KeyError:
+                    pass
                 continue
             current_move += 10 ** j * int(item)
         possible_moves[c] = current_move
-    print(np.shape(possible_moves))
-    print(possible_moves)
-    brd= fen_to_bitboard(fen)
+    brd = board_to_bitboard(board)
     output = model.predict(([brd], [[possible_moves]]))
-    print(output)
+    #print(output, output.shape)
+    limit = possible_moves.index(0)
+    #print('limit:', limit)
+    output = output[0, :limit]
+    #print(output)
     chosen_move_index = np.argmax(output)
-    print(chosen_move_index)
-    chosen = possible_moves[chosen_move_index]
-    if chosen == 0:
-        return 0
-    a = files_reversed[chosen // 1000]
-    b = str(chosen // 100 % 10)
-    c = files_reversed[chosen // 10 % 10]
-    d = str(chosen % 10)
-    return a + b + c + d
+    #print(chosen_move_index)
+    pb = list(board.legal_moves)
+    return (output, pb[chosen_move_index])
+
+
+def auto_play(model, board, exploration_prob=0.2):
+    game_records = []
+    uci_moves = []
+    print(board)
+    while (
+        not board.is_checkmate() and not
+        board.is_stalemate() and not
+        board.is_insufficient_material() and not
+        board.is_seventyfive_moves()
+    ):
+        print("===============")
+        output, move = make_move(model, board)
+        board.push(move)
+        print(board)
+    
+    if board.is_checkmate():
+        print("Checkmate!")
+    elif board.is_stalemate():
+        print("Stalemate")
+    elif board.is_insufficient_material():
+        print("Insufficient material")
+    elif board.is_seventyfive_moves():
+        print("Fifty-moves")
+    else:
+        print("Game is still in progress.")
 
 
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    board = chess.Board(fen)
 
     model = new_model()
 
-    print(make_move(model, fen))
+    auto_play(model, board)
+    print(board.fen)
+
