@@ -85,7 +85,8 @@ def auto_play(model, board, exploration_prob=0.2):
         not board.is_checkmate() and not
         board.is_stalemate() and not
         board.is_insufficient_material() and not
-        board.is_seventyfive_moves()
+        board.is_seventyfive_moves() and not
+        board.is_repetition()
     ):
         print("===============")
         output, move = make_move(model, board)
@@ -100,6 +101,8 @@ def auto_play(model, board, exploration_prob=0.2):
         print("Insufficient material")
     elif board.is_seventyfive_moves():
         print("Fifty-moves")
+    elif board.board.is_repetition():
+        print("Three-fold repetition")
     else:
         print("Game is still in progress.")
 
