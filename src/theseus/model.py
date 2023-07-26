@@ -19,7 +19,8 @@ files = {
 files_reversed = 'abcdefgh'
 
 
-def board_to_bitboard(board):
+def board_to_bitboard(fen):
+    board = chess.Board(fen)
     piece_to_int = {'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6,
                     'p': -1, 'n': -2, 'b': -3, 'r': -4, 'q': -5, 'k': -6, '.': 0}
 
@@ -68,7 +69,7 @@ def make_move(model, fen):
                 continue
             current_move += 10 ** j * int(item)
         possible_moves[c] = current_move
-    brd = board_to_bitboard(board)
+    brd = board_to_bitboard(board.fen())
     output = model.predict(([brd], [[possible_moves]]))
     #print(output, output.shape)
     limit = possible_moves.index(0)
@@ -78,11 +79,12 @@ def make_move(model, fen):
     chosen_move_index = np.argmax(output)
     #print(chosen_move_index)
     pb = list(board.legal_moves)
-    return (output, pb[chosen_move_index])
+    return (output, pb[chosen_move_index], possible_moves)
 
 
 def auto_play(model, board, exploration_prob=0.2, verbose=True):
-    X = []
+    X0 = []
+    X1 = []
     Y = []
     y = []
     if verbose: print(board)
@@ -99,9 +101,21 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
             mask = np.random.choice([-0, 1], size=(l,))
             output *= mask
             move = possible_moves[np.argmax(output)]
+            pb = [0 for _ in range(max_moves)]
+            for c, i in enumerate(board.legal_moves):
+                current_move = 0
+                for j, item in enumerate(str(i)):
+                    if j % 2 == 0:
+                        try:
+                            current_move += 10 ** j * files[item]
+                        except KeyError:
+                            pass
+                        continue
+                    current_move += 10 ** j * int(item)
+                pb[c] = current_move
             #print('Exploration')
         else:
-            output, move = make_move(model, board.fen())
+            output, move, pb = make_move(model, board.fen())
         board.push(move)
         if verbose:
             print("===============")
@@ -111,7 +125,8 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
             temp[:len(output)] = output
             output = temp
         #print(output)
-        X.append(board.fen().__str__())
+        X0.append(str(board.fen()))
+        X1.append(pb)
         Y.append(output)
         y.append(1)
 
@@ -129,22 +144,23 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         else:
             print("`Game is still in progress.")
 
-    return X, Y, y
+    return X0, X1, Y, y
 
 
 def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=1):
-    X = Y = y = []
+    X0, X1, Y, y = [], [], [], []
     for _ in range(play_iterations):
         board = chess.Board(fen)
-        X_c, Y_c, y_c = auto_play(model,board, exploration_prob, verbose)
-        X.append(X_c)
+        X_c, X_c1, Y_c, y_c = auto_play(model,board, exploration_prob, verbose)
+        X0.append(X_c)
+        X1.append(X_c1)
         Y.append(Y_c)
         y.append(y_c)
 
-    print(np.shape(X))
-    
-    X = [board_to_bitboard(chess.Board(x)) for x in X]
-    model.fit(X, Y, epochs=10)
+    print(np.shape(X1))
+    print(X1)
+
+    #model.fit(X, Y, epochs=10)
 
 
         
