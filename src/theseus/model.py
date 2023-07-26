@@ -89,15 +89,24 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         board.is_insufficient_material() and not
         board.is_seventyfive_moves() and not
         board.is_repetition()):
-        output, move = make_move(model, board)
+        if np.random.rand() < exploration_prob:
+            possible_moves = list(board.legal_moves)
+            l = len(possible_moves)
+            output = -np.zeros(l)
+            choice = np.random.choice(l)
+            output[choice] = np.random.uniform(1, 2000)
+            move = possible_moves[choice]
+        else:
+            output, move = make_move(model, board)
         board.push(move)
-        if verbose: print("===============")
-        if verbose: print(board)
+        if verbose:
+            print("===============")
+            print(board)
         if output.shape != (max_moves,):
             temp = np.zeros(max_moves)
             temp[:len(output)] = output
             output = temp
-        #print(output)
+        print(output)
         game_records.append((output, move))
 
     if verbose:
