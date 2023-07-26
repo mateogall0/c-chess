@@ -2,7 +2,9 @@
 
 
 import chess
-
+from theseus.model import make_move as mMakeMove
+from tensorflow import keras as K
+model = K.models.load_model('theseus/theseus.h5')
 
 def print_board(fen):
     """
@@ -51,8 +53,8 @@ def make_move(fen, move):
     return board.fen()
 
 
-def check_game_state(board):
-
+def check_game_state(fen):
+    board = chess.Board(fen)
     finished = False
     if board.is_checkmate():
         print("Checkmate!")
@@ -77,15 +79,19 @@ def get_turn(fen):
 
 
 def play(fen):
+    turn = 0
     while not check_game_state(fen):
         print_board(fen)
-        move = input(f"Move ({get_turn(fen)}): ")
-        if is_move_possible(fen, move):
-            fen = make_move(fen, move)
+        if turn % 2 == 0:
+            move = input(f"Move ({get_turn(fen)}): ")
+        else:
+            _, move, _ = mMakeMove(model, fen)
+        if is_move_possible(fen, str(move)):
+            fen = make_move(fen, str(move))
         else:
             print('Move not possible')
+        turn += 1
     print_board(fen)
-    
 
 
 if __name__ == '__main__':
