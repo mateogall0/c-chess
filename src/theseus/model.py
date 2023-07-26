@@ -49,12 +49,13 @@ def new_model(lr=0.001):
     output_layer = K.layers.Dense(max_moves, activation='relu')(hidden_layer)
 
     model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
-    model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr))
+    model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr), metrics=['accuracy'])
     return model
 
 
 
-def make_move(model, board):
+def make_move(model, fen):
+    board = chess.Board(fen)
     possible_moves = [0 for _ in range(max_moves)]
     for c, i in enumerate(board.legal_moves):
         current_move = 0
@@ -81,7 +82,9 @@ def make_move(model, board):
 
 
 def auto_play(model, board, exploration_prob=0.2, verbose=True):
-    game_records = []
+    X = []
+    Y = []
+    y = []
     if verbose: print(board)
     while (
         not board.is_checkmate() and not
@@ -89,8 +92,8 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         board.is_insufficient_material() and not
         board.is_seventyfive_moves() and not
         board.is_repetition()):
+        possible_moves = list(board.legal_moves)
         if np.random.rand() < exploration_prob:
-            possible_moves = list(board.legal_moves)
             l = len(possible_moves)
             output = np.random.uniform(-0, 2200, size=(l,))
             mask = np.random.choice([-0, 1], size=(l,))
@@ -98,7 +101,7 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
             move = possible_moves[np.argmax(output)]
             #print('Exploration')
         else:
-            output, move = make_move(model, board)
+            output, move = make_move(model, board.fen())
         board.push(move)
         if verbose:
             print("===============")
@@ -107,8 +110,10 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
             temp = np.zeros(max_moves)
             temp[:len(output)] = output
             output = temp
-        print(output)
-        game_records.append((output, move))
+        #print(output)
+        X.append(board.fen().__str__())
+        Y.append(output)
+        y.append(1)
 
     if verbose:
         if board.is_checkmate():
@@ -124,14 +129,28 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         else:
             print("`Game is still in progress.")
 
-    return game_records
+    return X, Y, y
+
+
+def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=1):
+    X = Y = y = []
+    for _ in range(play_iterations):
+        board = chess.Board(fen)
+        X_c, Y_c, y_c = auto_play(model,board, exploration_prob, verbose)
+        X.append(X_c)
+        Y.append(Y_c)
+        y.append(y_c)
+
+    print(np.shape(X))
+    
+    X = [board_to_bitboard(chess.Board(x)) for x in X]
+    model.fit(X, Y, epochs=10)
+
+
+        
+
 
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    board = chess.Board(fen)
-
     model = new_model()
-
-    a = auto_play(model, board)
-    print(board.fen)
-    #print(a)
+    train_model(model, fen, verbose=False)
