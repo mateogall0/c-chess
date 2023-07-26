@@ -72,7 +72,7 @@ def make_move(model, fen):
     brd = board_to_bitboard(board.fen())
     output = model.predict(([brd], [[possible_moves]]))
     #print(output, output.shape)
-    print(possible_moves)
+    #print(possible_moves)
     limit = possible_moves.index(0)
     #print('limit:', limit)
     output = output[0, :limit]
@@ -151,7 +151,7 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
 def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=300):
     X0, X1, Y, y = [], [], [], []
     for i in range(play_iterations):
-        print(f'Iteration: {i}')
+        print(f'Iteration: {i} / {play_iterations}')
         board = chess.Board(fen)
         X_c, X_c1, Y_c, y_c = auto_play(model,board, exploration_prob, verbose)
         X0.append(X_c)
