@@ -77,35 +77,41 @@ def make_move(model, board):
     return (output, pb[chosen_move_index])
 
 
-def auto_play(model, board, exploration_prob=0.2):
+def auto_play(model, board, exploration_prob=0.2, verbose=True):
     game_records = []
-    uci_moves = []
-    print(board)
+    if verbose: print(board)
     while (
         not board.is_checkmate() and not
         board.is_stalemate() and not
         board.is_insufficient_material() and not
         board.is_seventyfive_moves() and not
-        board.is_repetition()
-    ):
-        print("===============")
+        board.is_repetition()):
         output, move = make_move(model, board)
         board.push(move)
-        print(board)
-    
-    if board.is_checkmate():
-        print("Checkmate!")
-    elif board.is_stalemate():
-        print("Stalemate")
-    elif board.is_insufficient_material():
-        print("Insufficient material")
-    elif board.is_seventyfive_moves():
-        print("Fifty-moves")
-    elif board.board.is_repetition():
-        print("Three-fold repetition")
-    else:
-        print("Game is still in progress.")
+        if verbose: print("===============")
+        if verbose: print(board)
+        if output.shape != (max_moves,):
+            temp = np.zeros(max_moves)
+            temp[:len(output)] = output
+            output = temp
+        print(output)
+        game_records.append((output, move))
 
+    if verbose:
+        if board.is_checkmate():
+            print("Checkmate!")
+        elif board.is_stalemate():
+            print("Stalemate")
+        elif board.is_insufficient_material():
+            print("Insufficient material")
+        elif board.is_seventyfive_moves():
+            print("Fifty-moves")
+        elif board.is_repetition():
+            print("Three-fold repetition")
+        else:
+            print("`Game is still in progress.")
+
+    return game_records
 
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -113,6 +119,6 @@ if __name__ == '__main__':
 
     model = new_model()
 
-    auto_play(model, board)
+    a = auto_play(model, board)
     print(board.fen)
-
+    #print(a)
