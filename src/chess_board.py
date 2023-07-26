@@ -51,8 +51,7 @@ def make_move(fen, move):
     return board.fen()
 
 
-def check_game_state(fen):
-    board = chess.Board(fen)
+def check_game_state(board):
 
     finished = False
     if board.is_checkmate():

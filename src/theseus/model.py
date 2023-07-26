@@ -40,7 +40,10 @@ def new_model(lr=0.001):
     board_flattened = K.layers.Flatten()(board_input_layer)
     moves_flattened = K.layers.Flatten()(moves_input_layer)
 
-    merged_inputs = K.layers.concatenate([board_flattened, moves_flattened])
+    hidden_layer_board = K.layers.Dense(64, activation='relu')(board_flattened)
+    hidden_layer_moves = K.layers.Dense(max_moves, activation='relu')(moves_flattened)
+
+    merged_inputs = K.layers.concatenate([hidden_layer_board, hidden_layer_moves])
 
     hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(merged_inputs)
     output_layer = K.layers.Dense(max_moves, activation='relu')(hidden_layer)
@@ -94,7 +97,7 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
             temp = np.zeros(max_moves)
             temp[:len(output)] = output
             output = temp
-        print(output)
+        #print(output)
         game_records.append((output, move))
 
     if verbose:
