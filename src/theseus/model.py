@@ -92,10 +92,11 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         if np.random.rand() < exploration_prob:
             possible_moves = list(board.legal_moves)
             l = len(possible_moves)
-            output = -np.zeros(l)
-            choice = np.random.choice(l)
-            output[choice] = np.random.uniform(1, 2000)
-            move = possible_moves[choice]
+            output = np.random.uniform(-0, 2200, size=(l,))
+            mask = np.random.choice([-0, 1], size=(l,))
+            output *= mask
+            move = possible_moves[np.argmax(output)]
+            #print('Exploration')
         else:
             output, move = make_move(model, board)
         board.push(move)
