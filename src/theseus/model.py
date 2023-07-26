@@ -147,7 +147,7 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
     return X0, X1, Y, y
 
 
-def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=1):
+def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=3):
     X0, X1, Y, y = [], [], [], []
     for _ in range(play_iterations):
         board = chess.Board(fen)
@@ -157,8 +157,16 @@ def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=
         Y.append(Y_c)
         y.append(y_c)
 
-    print(np.shape(X1))
-    print(X1)
+    print(X0)
+    print(np.shape(X0))
+    for i, x in enumerate(X0):
+        for y, item in enumerate(x):
+            X0[i][y] = board_to_bitboard(item)
+    print(X0)
+    print(np.shape(X0))
+
+    #X = np.column_stack((X0, X1))
+    #print(X)
 
     #model.fit(X, Y, epochs=10)
 
