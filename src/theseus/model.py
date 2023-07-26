@@ -157,21 +157,34 @@ def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=
         Y.append(Y_c)
         y.append(y_c)
 
-    print(X0)
-    print(np.shape(X0))
+    """
     for i, x in enumerate(X0):
         for y, item in enumerate(x):
             X0[i][y] = board_to_bitboard(item)
-    print(X0)
+    
     print(np.shape(X0))
+    print(np.shape(X1))
+    X = []
+    for x0, x1 in zip(X0, X1):
+        for i, j in zip(x0, x1):
+            X.append((i, np.array(j)))
+            print(type(i), type(np.array(j)))
+    X = np.array(X)
+    print(X)
+    print(X.shape)
+    """
+    X0_concatenated = [item for sublist in X0 for item in sublist]
 
-    #X = np.column_stack((X0, X1))
-    #print(X)
+    for i, x in enumerate(X0_concatenated):
+        X0_concatenated[i] = board_to_bitboard(x)
 
-    #model.fit(X, Y, epochs=10)
+    X0_concatenated = np.array(X0_concatenated)
+    X1 = np.array(X1)
+    X1 = np.array(list(map(np.array, X1)))
+    print(X1)
+    model.fit((X0_concatenated, X1), Y, epochs=10)
 
 
-        
 
 
 if __name__ == '__main__':
