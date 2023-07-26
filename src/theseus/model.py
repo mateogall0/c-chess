@@ -5,7 +5,7 @@ from tensorflow import keras as K
 import tensorflow as tf
 import numpy as np
 import chess
-max_moves = 64
+max_moves = 86
 files = {
     'a': 1,
     'b': 2,
@@ -72,6 +72,7 @@ def make_move(model, fen):
     brd = board_to_bitboard(board.fen())
     output = model.predict(([brd], [[possible_moves]]))
     #print(output, output.shape)
+    print(possible_moves)
     limit = possible_moves.index(0)
     #print('limit:', limit)
     output = output[0, :limit]
@@ -147,9 +148,10 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
     return X0, X1, Y, y
 
 
-def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=3):
+def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=300):
     X0, X1, Y, y = [], [], [], []
-    for _ in range(play_iterations):
+    for i in range(play_iterations):
+        print(f'Iteration: {i}')
         board = chess.Board(fen)
         X_c, X_c1, Y_c, y_c = auto_play(model,board, exploration_prob, verbose)
         X0.append(X_c)
@@ -172,9 +174,8 @@ def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=
     model.fit((X0, X1), Y_concatenated, epochs=10)
 
 
-
-
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     model = new_model()
     train_model(model, fen, verbose=False)
+    model.save("theseus.h5")
