@@ -14,7 +14,6 @@ def print_board(fen):
     parts = fen.split()
     board_rows = parts[0].split('/')
 
-    print("    a   b   c   d   e   f   g   h")
     print("  ┌───┬───┬───┬───┬───┬───┬───┬───┐")
 
     for i, row in enumerate(board_rows):
@@ -34,6 +33,7 @@ def print_board(fen):
             print("  ├───┼───┼───┼───┼───┼───┼───┼───┤")
 
     print("  └───┴───┴───┴───┴───┴───┴───┴───┘")
+    print("    a   b   c   d   e   f   g   h")
 
 
 def is_move_possible(fen, move):
@@ -78,8 +78,7 @@ def get_turn(fen):
     return "white" if board.turn == chess.WHITE else "black"
 
 
-def play(fen):
-    turn = 0
+def play(fen, turn=0):
     while not check_game_state(fen):
         print_board(fen)
         if turn % 2 == 0:
