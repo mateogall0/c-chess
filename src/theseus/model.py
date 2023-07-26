@@ -178,11 +178,10 @@ def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=
     for i, x in enumerate(X0_concatenated):
         X0_concatenated[i] = board_to_bitboard(x)
 
-    X0_concatenated = np.array(X0_concatenated)
-    X1 = np.array(X1)
+    X0 = np.array(X0_concatenated)
     X1 = np.array(list(map(np.array, X1)))
     print(X1)
-    model.fit((X0_concatenated, X1), Y, epochs=10)
+    model.fit((X0, X1), Y, epochs=10)
 
 
 
