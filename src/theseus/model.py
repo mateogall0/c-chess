@@ -112,9 +112,10 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         possible_moves = list(board.legal_moves)
         if np.random.rand() < exploration_prob:
             l = len(possible_moves)
-            output = np.random.uniform(-0, 2200, size=(l,))
-            mask = np.random.choice([-0, 1], size=(l,))
-            output *= mask
+            output = np.zeros(shape=(l,))
+            random_index = np.random.randint(l)
+            output[random_index] = 1
+            
             move = possible_moves[np.argmax(output)]
             pb = [0 for _ in range(max_moves)]
             for c, i in enumerate(board.legal_moves):
@@ -131,8 +132,8 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
             #print('Exploration')
         else:
             output, move, pb = make_move(model, board.fen())
-        print(move)
-        print(output)
+        #print(move)
+        #print(output)
         board.push(move)
         if verbose:
             print("===============")
@@ -194,5 +195,5 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200, training_
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     model = new_model()
-    train_model(model, fen, exploration_prob=0, batch_size=32)
+    train_model(model, fen, exploration_prob=1.1, batch_size=128)
     model.save("theseus.h5")
