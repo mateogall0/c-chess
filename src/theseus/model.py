@@ -195,5 +195,5 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200, training_
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     model = new_model()
-    train_model(model, fen, exploration_prob=1.1, batch_size=128)
+    train_model(model, fen, exploration_prob=1.1, batch_size=512)
     model.save("theseus.h5")
