@@ -165,7 +165,7 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
     return X0, X1, Y, y
 
 
-def train_model(model, fen, exploration_prob=0.2, play_iterations=200, training_verbose=True, playing_verbose=False, batch_size=None):
+def train_model(model, fen, exploration_prob=0.2, play_iterations=200, training_verbose=True, playing_verbose=False, batch_size=None, shuffle=False, epochs=20):
     X0, X1, Y, y = [], [], [], []
     for i in range(1, play_iterations + 1):
         if training_verbose: print(f'\rIteration: {i} / {play_iterations}', end='', flush=True)
@@ -189,7 +189,7 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200, training_
 
     Y_concatenated = np.concatenate(Y, axis=0)
     
-    model.fit((X0, X1), Y_concatenated, batch_size=batch_size, shuffle=True, epochs=20, verbose=training_verbose)
+    model.fit((X0, X1), Y_concatenated, batch_size=batch_size, shuffle=shuffle, epochs=epochs, verbose=training_verbose)
 
 
 if __name__ == '__main__':
