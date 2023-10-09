@@ -34,7 +34,7 @@ def board_to_bitboard(fen):
     return board_array
 
 
-def new_model(lr=0.001):
+def new_model(lr=0.05):
     board_input_layer = K.layers.Input(shape=(8, 8))
     moves_input_layer = K.layers.Input(shape=(1, max_moves))
 
@@ -47,7 +47,21 @@ def new_model(lr=0.001):
     merged_inputs = K.layers.concatenate([hidden_layer_board, hidden_layer_moves])
 
     hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(merged_inputs)
-    output_layer = K.layers.Dense(max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
+    output_layer = K.layers.Dense(max_moves, activation='softmax')(hidden_layer)
+
 
     model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
     model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr), metrics=['accuracy'])
@@ -98,9 +112,10 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         possible_moves = list(board.legal_moves)
         if np.random.rand() < exploration_prob:
             l = len(possible_moves)
-            output = np.random.uniform(-0, 2200, size=(l,))
-            mask = np.random.choice([-0, 1], size=(l,))
-            output *= mask
+            output = np.zeros(shape=(l,))
+            random_index = np.random.randint(l)
+            output[random_index] = 1
+            
             move = possible_moves[np.argmax(output)]
             pb = [0 for _ in range(max_moves)]
             for c, i in enumerate(board.legal_moves):
@@ -117,6 +132,8 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
             #print('Exploration')
         else:
             output, move, pb = make_move(model, board.fen())
+        #print(move)
+        #print(output)
         board.push(move)
         if verbose:
             print("===============")
@@ -143,21 +160,22 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         elif board.is_repetition():
             print("Three-fold repetition")
         else:
-            print("`Game is still in progress.")
+            print("Game is still in progress.")
 
     return X0, X1, Y, y
 
 
-def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=300):
+def train_model(model, fen, exploration_prob=0.2, play_iterations=200, training_verbose=True, playing_verbose=False, batch_size=None, shuffle=False, epochs=20):
     X0, X1, Y, y = [], [], [], []
-    for i in range(play_iterations):
-        print(f'Iteration: {i} / {play_iterations}')
+    for i in range(1, play_iterations + 1):
+        if training_verbose: print(f'\rIteration: {i} / {play_iterations}', end='', flush=True)
         board = chess.Board(fen)
-        X_c, X_c1, Y_c, y_c = auto_play(model,board, exploration_prob, verbose)
+        X_c, X_c1, Y_c, y_c = auto_play(model,board, exploration_prob, playing_verbose)
         X0.append(X_c)
         X1.append(X_c1)
         Y.append(Y_c)
         y.append(y_c)
+    if training_verbose: print()
 
     X0_concatenated = [item for sublist in X0 for item in sublist]
     X1_concatenated = [item for sublist in X1 for item in sublist]
@@ -168,14 +186,14 @@ def train_model(model, fen, exploration_prob=0.2, verbose=True, play_iterations=
     X0 = np.array(X0_concatenated)
     X1 = np.array(list(map(np.array, X1_concatenated)))
     X1 = X1.reshape(X1.shape[0], 1, X1.shape[1])
-    
+
     Y_concatenated = np.concatenate(Y, axis=0)
     
-    model.fit((X0, X1), Y_concatenated, epochs=10)
+    model.fit((X0, X1), Y_concatenated, batch_size=batch_size, shuffle=shuffle, epochs=epochs, verbose=training_verbose)
 
 
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     model = new_model()
-    train_model(model, fen, verbose=False)
+    train_model(model, fen, exploration_prob=1.1, batch_size=512)
     model.save("theseus.h5")
