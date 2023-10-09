@@ -62,6 +62,15 @@ def check_game_state(fen):
     elif board.is_stalemate():
         print("Stalemate!")
         finished = True
+    elif board.is_insufficient_material():
+        print("Insufficient material")
+        finished = True
+    elif board.is_seventyfive_moves():
+        print("Fifty-moves")
+        finished = True
+    elif board.is_repetition():
+        print("Three-fold repetition")
+        finished = True
     else:
         print("Game is still in progress.")
     return finished
@@ -78,10 +87,10 @@ def get_turn(fen):
     return "white" if board.turn == chess.WHITE else "black"
 
 
-def play(fen, turn=0):
+def play(fen, turn=0, engine_only=False):
     while not check_game_state(fen):
         print_board(fen)
-        if turn % 2 == 0:
+        if not engine_only and turn % 2 == 0:
             move = input(f"Move ({get_turn(fen)}): ")
         else:
             _, move, _ = mMakeMove(model, fen)
@@ -95,5 +104,5 @@ def play(fen, turn=0):
 
 if __name__ == '__main__':
     # Initial position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    play(fen)
+    fen = 'rnbqkbnr/pppp1ppp/8/8/4Pp2/5N2/PPPP2PP/RNBQKB1R b KQkq - 1 3'
+    play(fen, engine_only=True)
