@@ -2,7 +2,6 @@
 
 
 from tensorflow import keras as K
-import tensorflow as tf
 import numpy as np
 import chess
 max_moves = 86
@@ -35,7 +34,11 @@ def board_to_bitboard(fen):
 
 
 def new_model(lr=0.05):
+    # Input of either true or false taking into consideration if the move is for white or black    
+    # Board input
+    color_input_layer = K.layers.Input(shape=(1,), dtype='bool')
     board_input_layer = K.layers.Input(shape=(8, 8))
+    # Moves available in current position 
     moves_input_layer = K.layers.Input(shape=(1, max_moves))
 
     board_flattened = K.layers.Flatten()(board_input_layer)
@@ -43,30 +46,27 @@ def new_model(lr=0.05):
 
     hidden_layer_board = K.layers.Dense(64, activation='relu')(board_flattened)
     hidden_layer_moves = K.layers.Dense(max_moves, activation='relu')(moves_flattened)
+    hidden_layer_color = K.layers.Dense(32, activation='relu')(K.layers.Flatten()(K.layers.Embedding(2, 32)(color_input_layer)))
 
-    merged_inputs = K.layers.concatenate([hidden_layer_board, hidden_layer_moves])
+    merged_inputs = K.layers.concatenate([hidden_layer_board, hidden_layer_moves, hidden_layer_color])
 
-    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(merged_inputs)
+    hidden_layer = K.layers.Dense(64 + max_moves + 32, activation='relu')(merged_inputs)
     hidden_layer = K.layers.BatchNormalization()(hidden_layer)
-    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves + 32, activation='relu')(hidden_layer)
     hidden_layer = K.layers.BatchNormalization()(hidden_layer)
-    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves + 32, activation='relu')(hidden_layer)
     hidden_layer = K.layers.BatchNormalization()(hidden_layer)
-    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves + 32, activation='relu')(hidden_layer)
     hidden_layer = K.layers.BatchNormalization()(hidden_layer)
-    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves + 32, activation='relu')(hidden_layer)
     hidden_layer = K.layers.BatchNormalization()(hidden_layer)
-    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
-    hidden_layer = K.layers.BatchNormalization()(hidden_layer)
-    hidden_layer = K.layers.Dense(64 + max_moves, activation='relu')(hidden_layer)
+    hidden_layer = K.layers.Dense(64 + max_moves + 32, activation='relu')(hidden_layer)
     hidden_layer = K.layers.BatchNormalization()(hidden_layer)
     output_layer = K.layers.Dense(max_moves, activation='softmax')(hidden_layer)
 
-
-    model = K.models.Model(inputs=[board_input_layer, moves_input_layer], outputs=output_layer)
+    model = K.models.Model(inputs=[board_input_layer, moves_input_layer, color_input_layer], outputs=output_layer)
     model.compile(loss='mse', optimizer=K.optimizers.Adam(lr=lr), metrics=['accuracy'])
     return model
-
 
 
 def make_move(model, fen):
