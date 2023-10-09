@@ -35,8 +35,8 @@ def board_to_bitboard(fen):
 
 def new_model(lr=0.05):
     # Input of either true or false taking into consideration if the move is for white or black    
-    # Board input
     color_input_layer = K.layers.Input(shape=(1,), dtype='bool')
+    # Board input
     board_input_layer = K.layers.Input(shape=(8, 8))
     # Moves available in current position 
     moves_input_layer = K.layers.Input(shape=(1, max_moves))
