@@ -105,7 +105,7 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
     X0 = []
     X1 = []
     Y = []
-    if verbose: print(board)
+    #if verbose: print(board)
     while (
         not board.is_checkmate() and not
         board.is_stalemate() and not
@@ -140,14 +140,14 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         #print(move)
         #print(output)
         board.push(move)
-        if verbose:
+        """if verbose:
             print("===============")
-            print(board)
+            print(board)"""
         if output.shape != (max_moves,):
             temp = np.zeros(max_moves)
             temp[:len(output)] = output
             output = temp
-        #print(output)
+        #print(output.shape)
         X0.append(str(board.fen()))
         X1.append(pb)
         Y.append(output)
@@ -172,7 +172,6 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
         who_won = 0
     else:
         who_won = -1
-
     return who_won, X0, X1, Y
 
 
@@ -212,7 +211,11 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200,
     X0 = np.array(X0_concatenated)
     X1 = np.array(X1_concatenated)
     X2 = np.array(list(map(np.array, X2_concatenated)))
-    X2 = X2.reshape(X2.shape[0], 1, X2.shape[1])
+    try:
+        X2 = X2.reshape(X2.shape[0], 1, X2.shape[1])
+    except ValueError:
+        print(f'In none of the games is a single win.')
+        return
 
     Y_concatenated = np.concatenate(Y, axis=0)
     
@@ -221,6 +224,7 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200,
 
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    #model = K.models.load_model('theseus.h5')
     model = new_model()
-    train_model(model, fen, exploration_prob=0.5, batch_size=512, play_iterations=10)
+    train_model(model, fen, exploration_prob=1, batch_size=128, play_iterations=1000, epochs=50)
     model.save("theseus.h5")
