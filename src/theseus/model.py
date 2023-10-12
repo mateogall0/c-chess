@@ -176,11 +176,11 @@ def auto_play(model, board, exploration_prob=0.2, verbose=True):
 
 def train_model(model, fen, exploration_prob=0.2, play_iterations=200,
                 training_verbose=True, playing_verbose=False, batch_size=None,
-                shuffle=False, epochs=30):
+                shuffle=False, epochs=30, keras_verbose=False):
     X0, X1, X2, Y = [], [], [], []
 
     for i in range(1, play_iterations + 1):
-        if training_verbose: print(f'\rIteration: {i} / {play_iterations}', end='', flush=True)
+        if training_verbose: print(f'\r  Playing iteration: {i} / {play_iterations}', end='', flush=True)
         board = chess.Board(fen)
         who_won, X_c, X_c1, Y_c = auto_play(model,board, exploration_prob, playing_verbose)
         if (who_won == -1):
@@ -214,12 +214,30 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200,
 
     Y_concatenated = np.concatenate(Y, axis=0)
     
-    model.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size, shuffle=shuffle, epochs=epochs, verbose=training_verbose)
+    return model.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size,
+              shuffle=shuffle, epochs=epochs, verbose=keras_verbose)
+
+
+def session_train_model (model, fen, exploration_prob=0.2, play_iterations=200,
+                training_verbose=True, playing_verbose=False, batch_size=None,
+                shuffle=False, epochs=30, exploration_prob_diff_times=10,
+                training_iterations=5, keras_verbose=False):
+    current_exploration_prob = exploration_prob
+    for i in range(1, training_iterations + 1):
+        print(f'Training session: {i} / {training_iterations}')
+        history = train_model(model, fen, exploration_prob=current_exploration_prob,
+                    batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
+                    playing_verbose=playing_verbose, training_verbose=training_verbose,
+                    shuffle=shuffle, keras_verbose=keras_verbose)
+        if history is None:
+            print('  Nothing to learn from these iterations...')
+        else:
+            print(f'  Last recorded accuracy: {history.history["acc"][-1]}')
 
 
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    #model = K.models.load_model('theseus.h5')
-    model = new_model()
-    train_model(model, fen, exploration_prob=1, batch_size=512, play_iterations=100, epochs=30)
+    model = K.models.load_model('theseus.h5')
+    #model = new_model()
+    session_train_model(model, fen, exploration_prob=1, batch_size=512, play_iterations=100, epochs=50)
     model.save("theseus.h5")
