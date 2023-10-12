@@ -208,7 +208,7 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200,
     X2 = np.array(list(map(np.array, X2_concatenated)))
     try:
         X2 = X2.reshape(X2.shape[0], 1, X2.shape[1])
-    except ValueError:
+    except IndexError:
         print(f'In none of the games is a single win.')
         return
 
@@ -223,21 +223,31 @@ def session_train_model (model, fen, exploration_prob=0.2, play_iterations=200,
                 shuffle=False, epochs=30, exploration_prob_diff_times=10,
                 training_iterations=5, keras_verbose=False):
     current_exploration_prob = exploration_prob
-    for i in range(1, training_iterations + 1):
-        print(f'Training session: {i} / {training_iterations}')
+    exploration_prob_diff = training_iterations // exploration_prob_diff_times
+    diff_exploration_time = 0
+    for i in range(training_iterations):
+        if i % exploration_prob_diff == 0:
+            current_exploration_prob /= 2
+            diff_exploration_time += 1
+        if diff_exploration_time == exploration_prob_diff_times:
+            current_exploration_prob = 0
+        print(f'Training session: {i + 1} / {training_iterations} at {current_exploration_prob * 100}% probability of a random move')
         history = train_model(model, fen, exploration_prob=current_exploration_prob,
                     batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
                     playing_verbose=playing_verbose, training_verbose=training_verbose,
                     shuffle=shuffle, keras_verbose=keras_verbose)
         if history is None:
             print('  Nothing to learn from these iterations...')
-        else:
+        elif not keras_verbose:
             print(f'  Last recorded accuracy: {history.history["acc"][-1]}')
 
 
 if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    model = K.models.load_model('theseus.h5')
-    #model = new_model()
-    session_train_model(model, fen, exploration_prob=1, batch_size=512, play_iterations=100, epochs=50)
+    #model = K.models.load_model('theseus.h5')
+    model = new_model()
+    session_train_model(model, fen, exploration_prob=1,
+                        batch_size=512,
+                        play_iterations=100, epochs=70,
+                        exploration_prob_diff_times=5)
     model.save("theseus.h5")
