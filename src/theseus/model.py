@@ -5,7 +5,7 @@ from tensorflow import keras as K
 import tensorflow as tf
 import numpy as np
 import chess
-max_moves = 86
+max_moves = 128
 files = {
     'a': 1,
     'b': 2,
@@ -17,7 +17,6 @@ files = {
     'h': 8,
 }
 files_reversed = 'abcdefgh'
-tf.compat.v1.disable_eager_execution()
 
 def board_to_bitboard(fen):
     board = chess.Board(fen)
@@ -34,7 +33,7 @@ def board_to_bitboard(fen):
     return board_array
 
 
-def new_model(lr=0.05):
+def new_model():
     # Input of either true or false taking into consideration if the move is for white or black    
     color_input_layer = K.layers.Input(shape=(1,), dtype='int32')
     # Board input
@@ -66,7 +65,7 @@ def new_model(lr=0.05):
     output_layer = K.layers.Dense(max_moves, activation='softmax')(hidden_layer)
 
     model = K.models.Model(inputs=[color_input_layer, board_input_layer, moves_input_layer], outputs=output_layer)
-    model.compile(loss='mse', optimizer=K.optimizers.legacy.Adam(lr=lr), metrics=['accuracy'])
+    model.compile(loss='mse', optimizer=K.optimizers.Adam(), metrics=['accuracy'])
     return model
 
 
@@ -186,14 +185,10 @@ def train_model(model, fen, exploration_prob=0.2, play_iterations=200,
         who_won, X_c, X_c1, Y_c = auto_play(model,board, exploration_prob, playing_verbose)
         if (who_won == -1):
             continue
-        if who_won == 1:
-            X_c = X_c[0::2]
-            X_c1 = X_c1[0::2]
-            Y_c = Y_c[0::2]
-        elif who_won == 0:
-            X_c = X_c[1::2]
-            X_c1 = X_c1[1::2]
-            Y_c = Y_c[1::2]
+        y = 0 if who_won == 1 else 1
+        X_c = X_c[y::2]
+        X_c1 = X_c1[y::2]
+        Y_c = Y_c[y::2]
 
         X0.append([who_won] * len(X_c))
         X1.append(X_c)
@@ -226,5 +221,5 @@ if __name__ == '__main__':
     fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     #model = K.models.load_model('theseus.h5')
     model = new_model()
-    train_model(model, fen, exploration_prob=1, batch_size=128, play_iterations=1000, epochs=50)
+    train_model(model, fen, exploration_prob=1, batch_size=512, play_iterations=100, epochs=30)
     model.save("theseus.h5")
