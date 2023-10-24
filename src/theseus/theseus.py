@@ -63,22 +63,23 @@ class Theseus:
                         play_iterations=100, epochs=70,
                         exploration_prob_diff_times=5)
 
+    def board_to_bitboard(self, fen):
+        board = chess.Board(fen)
+        piece_to_int = {'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6,
+                        'p': -1, 'n': -2, 'b': -3, 'r': -4, 'q': -5, 'k': -6, '.': 0}
+
+        board_array = np.zeros((8, 8), dtype=int)
+        for row in range(8):
+            for col in range(8):
+                square = chess.square(col, 7 - row)
+                piece = board.piece_at(square)
+                if piece is not None:
+                    board_array[row, col] = piece_to_int[piece.symbol()]
+        return board_array
+
     def train_model(self, model, fen, exploration_prob=0.2, play_iterations=200,
             training_verbose=True, playing_verbose=False, batch_size=None,
             shuffle=False, epochs=30, keras_verbose=False):
-        def board_to_bitboard(fen):
-            board = chess.Board(fen)
-            piece_to_int = {'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6,
-                            'p': -1, 'n': -2, 'b': -3, 'r': -4, 'q': -5, 'k': -6, '.': 0}
-
-            board_array = np.zeros((8, 8), dtype=int)
-            for row in range(8):
-                for col in range(8):
-                    square = chess.square(col, 7 - row)
-                    piece = board.piece_at(square)
-                    if piece is not None:
-                        board_array[row, col] = piece_to_int[piece.symbol()]
-            return board_array
 
         X0, X1, X2, Y = [], [], [], []
 
@@ -104,7 +105,7 @@ class Theseus:
         X2_concatenated = [item for sublist in X2 for item in sublist]
 
         for i, x in enumerate(X1_concatenated):
-            X1_concatenated[i] = board_to_bitboard(x)
+            X1_concatenated[i] = self.board_to_bitboard(x)
 
         X0 = np.array(X0_concatenated)
         X1 = np.array(X1_concatenated)
