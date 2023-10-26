@@ -18,11 +18,28 @@ class Theseus:
     }
     files_reversed = 'abcdefgh'
 
-    def __init__(self):
-        try:
-            self.__engine = K.load_model('theseus.h5')
-        except Exception:
+    def __init__(self, new_model=False, path='theseus.h5'):
+        if new_model:
             self.__engine = self.new_model()
+            self.__is_new = True
+        else:
+            self.__is_new = False
+            self.__engine = K.models.load_model(path)
+
+    @property
+    def is_new(self):
+        return self.__is_new
+    
+    @property
+    def engine(self):
+        return self.__engine
+
+    @property
+    def engine_summary(self):
+        return self.__engine.summary()
+
+    def engine_save(self, path='theseus.h5'):
+        return self.__engine.save(path)
 
     def new_model(self):
         color_input_layer = K.layers.Input(shape=(1,), dtype='int32')
