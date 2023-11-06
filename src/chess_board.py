@@ -96,13 +96,13 @@ def play(fen, turn=0, engine_only=False):
             _, move, _ = mMakeMove(model, fen)
         if is_move_possible(fen, str(move)):
             fen = make_move(fen, str(move))
+            turn += 1
         else:
             print('Move not possible')
-        turn += 1
     print_board(fen)
 
 
 if __name__ == '__main__':
     # Initial position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    fen = 'rnbqkbnr/pppp1ppp/8/8/4Pp2/5N2/PPPP2PP/RNBQKB1R b KQkq - 1 3'
-    play(fen, engine_only=True)
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    play(fen, engine_only=False)

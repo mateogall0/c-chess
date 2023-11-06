@@ -77,8 +77,9 @@ class Theseus:
         fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         self.session_train_model(self.__engine, fen, exploration_prob=1,
                         batch_size=512,
-                        play_iterations=100, epochs=70,
-                        exploration_prob_diff_times=5)
+                        play_iterations=1000, epochs=70,
+                        exploration_prob_diff_times=5,
+                        training_iterations=20)
 
     def board_to_bitboard(self, fen):
         board = chess.Board(fen)
