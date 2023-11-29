@@ -70,16 +70,16 @@ class Theseus:
         output_layer = K.layers.Dense(self.max_moves, activation='softmax')(hidden_layer)
 
         model = K.models.Model(inputs=[color_input_layer, board_input_layer, moves_input_layer], outputs=output_layer)
-        model.compile(loss='mse', optimizer=K.optimizers.Adam(), metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer=K.optimizers.Adam(), metrics=['accuracy'])
         return model
 
     def default_session_train(self):
         fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         self.session_train_model(self.__engine, fen, exploration_prob=1,
                         batch_size=512,
-                        play_iterations=1000, epochs=70,
+                        play_iterations=1000, epochs=200,
                         exploration_prob_diff_times=5,
-                        training_iterations=20)
+                        training_iterations=100)
 
     def board_to_bitboard(self, fen):
         board = chess.Board(fen)
