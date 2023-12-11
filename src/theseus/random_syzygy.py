@@ -14,6 +14,8 @@ def count_pieces(board):
 
     return total_pieces
 
+def remove_redundancies(arr):
+    return list(set(arr))
 
 def random_fen():
     limit=np.random.randint(3, 8)
@@ -32,7 +34,11 @@ def random_fen():
 
 
 if __name__ == '__main__':
-    for _ in range(100):
+    fen_codes = []
+    for _ in range(1400):
         fen, is_over, pieces = random_fen()
-        print("Random FEN:", fen, is_over, pieces)
-        print(chess.Board(fen))
+        if not is_over:
+            fen_codes.append(fen)
+    fen_codes = remove_redundancies(fen_codes)
+    print(fen_codes)
+    print(len(fen_codes))
