@@ -2,6 +2,7 @@
 import chess
 import chess.svg
 import numpy as np
+import  requests
 
 
 def count_pieces(board):
@@ -32,13 +33,23 @@ def random_fen():
             break
     return board.fen(), board.is_game_over(), pieces
 
+def random_syzygy(verbose=False, iterations=1400):
+    fen_codes = []
+    for _ in range(iterations):
+        fen, is_over, _ = random_fen()
+        if not is_over:
+            fen_codes.append(fen.replace(' ', '_'))
+    fen_codes = remove_redundancies(fen_codes)
+    if verbose:
+        print(fen_codes)
+        print(len(fen_codes))
+    return fen_codes
+
+def get_syzygy_output(fen_codes=[], url='http://tablebase.lichess.ovh/standard?fen='):
+    for fen in fen_codes:
+        response = requests.get(url + fen)
+        print(response)
+
 
 if __name__ == '__main__':
-    fen_codes = []
-    for _ in range(1400):
-        fen, is_over, pieces = random_fen()
-        if not is_over:
-            fen_codes.append(fen)
-    fen_codes = remove_redundancies(fen_codes)
-    print(fen_codes)
-    print(len(fen_codes))
+    get_syzygy_output(random_syzygy(True))
