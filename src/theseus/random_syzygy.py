@@ -15,7 +15,9 @@ def count_pieces(board):
     return total_pieces
 
 
-def random_fen(limit, board=chess.Board()):
+def random_fen():
+    limit=np.random.randint(3, 8)
+    board = chess.Board()
     while 1:
         legal_moves = [move for move in board.legal_moves]
         if not legal_moves:
@@ -30,11 +32,7 @@ def random_fen(limit, board=chess.Board()):
 
 
 if __name__ == '__main__':
-    limit = 3
-    for _ in range(5):
-        fen, is_over, pieces = random_fen(limit=limit)
-        limit += 1
-        if limit > 7: limit = 3
-        print(limit)
+    for _ in range(100):
+        fen, is_over, pieces = random_fen()
         print("Random FEN:", fen, is_over, pieces)
         print(chess.Board(fen))
