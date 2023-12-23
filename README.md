@@ -1,7 +1,7 @@
-# c-chess
+# Theseus - Chess Bot
 
 
-Dependencies needed 
--------------------
-python-chess
-<code>pip install chess</chess>
+## Dependencies installation 
+```bash
+conda env create -f environment.yml
+```
