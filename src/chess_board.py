@@ -2,9 +2,10 @@
 
 
 import chess
-from theseus.model import make_move as mMakeMove
+#from theseus.model import make_move as mMakeMove
+from theseus.theseus import Theseus
 from tensorflow import keras as K
-model = K.models.load_model('theseus/theseus.h5')
+model = Theseus(new_model=True)
 
 def print_board(fen):
     """
@@ -93,7 +94,7 @@ def play(fen, turn=0, engine_only=False):
         if not engine_only and turn % 2 == 0:
             move = input(f"Move ({get_turn(fen)}): ")
         else:
-            _, move, _ = mMakeMove(model, fen)
+            _, move, _ = model.make_move(model.engine, fen)
         if is_move_possible(fen, str(move)):
             fen = make_move(fen, str(move))
             turn += 1

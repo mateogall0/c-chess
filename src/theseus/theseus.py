@@ -3,7 +3,10 @@
 from tensorflow import keras as K
 import numpy as np
 import chess
-import model
+try:
+    from .model import layers
+except ImportError:
+    from model import layers
 
 class Theseus:
     max_moves = 128
@@ -17,7 +20,6 @@ class Theseus:
         'g': 7,
         'h': 8,
     }
-    files_reversed = 'abcdefgh'
 
     def __init__(self, new_model=False, path='theseus.h5'):
         if new_model:
@@ -44,9 +46,9 @@ class Theseus:
 
     def new_model(self):
         (merged_inputs, color_input_layer, board_input_layer,
-         moves_input_layer) = model.input_layers(self.max_moves)
+         moves_input_layer) = layers.input_layers(self.max_moves)
 
-        output_layer = model.hidden_layers(self.max_moves, merged_inputs)
+        output_layer = layers.hidden_layers(self.max_moves, merged_inputs)
 
         m = K.models.Model(
             inputs=[color_input_layer, board_input_layer, moves_input_layer], outputs=output_layer
