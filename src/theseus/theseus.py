@@ -63,8 +63,8 @@ class Theseus:
                         play_iterations=1000, epochs=200,
                         exploration_prob_diff_times=5,
                         training_iterations=100)
-
-    def board_to_bitboard(self, fen):
+    @staticmethod
+    def board_to_bitboard(fen):
         board = chess.Board(fen)
         piece_to_int = {'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6,
                         'p': -1, 'n': -2, 'b': -3, 'r': -4, 'q': -5, 'k': -6, '.': 0}

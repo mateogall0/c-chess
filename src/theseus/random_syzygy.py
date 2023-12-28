@@ -8,6 +8,7 @@ import chess
 import chess.svg
 import numpy as np
 import requests
+from theseus import Theseus
 
 files = {
     'a': '1',
@@ -48,22 +49,28 @@ def random_fen():
             break
     return board.fen(), board.is_game_over(), pieces
 
-def random_syzygy(verbose=False, iterations=10):
+def random_syzygy(verbose=True, iterations=10):
     fen_codes = []
+    fen_codes_readable = []
     for _ in range(iterations):
         fen, is_over, _ = random_fen()
         if not is_over:
             fen_codes.append(fen.replace(' ', '_'))
+            fen_codes_readable.append(fen)
     fen_codes = remove_redundancies(fen_codes)
     if verbose:
         print(fen_codes)
         print(len(fen_codes))
-    return fen_codes
+    return fen_codes, fen_codes_readable
 
-def get_syzygy_output(fen_codes=[], url='http://tablebase.lichess.ovh/standard?fen='):
-    y = []
-    for fen in fen_codes:
-        res = requests.get(url + fen).json()
+def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
+                      url='http://tablebase.lichess.ovh/standard?fen='):
+    Y = []
+    X0 = []
+    X1 = []
+    X2 = []
+    for i in range(len(fen_codes)):
+        res = requests.get(url + fen_codes[i]).json()
         cat = res['category']
         if cat != 'win' and cat != 'cursed-win' and cat != 'maybe-win' and cat != 'draw':
             continue
@@ -71,9 +78,33 @@ def get_syzygy_output(fen_codes=[], url='http://tablebase.lichess.ovh/standard?f
         uci[0] = files[uci[0]]
         uci[2] = files[uci[2]]
         modified_string = ''.join(uci)
-        y.append(int(''.join(modified_string)))
-    return np.array(y)
+        Y.append(int(''.join(modified_string[:4])))
+        board = chess.Board(fen_codes_readable[i])
+        who_moves = 1 if board.turn == chess.WHITE else 0
+        X0.append(who_moves)
+        X1.append(Theseus.board_to_bitboard(fen=fen_codes_readable[i]))
+        possible_moves = [0 for _ in range(Theseus.max_moves)]
+        for c, i in enumerate(board.legal_moves):
+            current_move = 0
+            for j, item in enumerate(str(i)):
+                if j % 2 == 0:
+                    try:
+                        current_move += 10 ** j * Theseus.files[item]
+                    except KeyError:
+                        pass
+                    continue
+                current_move += 10 ** j * int(item)
+            possible_moves[c] = current_move
+        X2.append(possible_moves)
+    return (
+        np.array(X0),
+        np.array(X1),
+        np.array(X2),
+        np.array(Y),
+    )
 
 
 if __name__ == '__main__':
-    print(get_syzygy_output(random_syzygy(True)))
+    fen_codes, fen_codes_readable = random_syzygy()
+    Y = get_syzygy_output(fen_codes, fen_codes_readable)
+    print(Y)
