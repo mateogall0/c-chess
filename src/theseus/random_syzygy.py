@@ -1,9 +1,24 @@
 #!/usr/bin/env python3
+"""
+This module contains a random Chess position generator with a count of
+pieces that goes from 3 to 7. The objective is to obtain unbiased new data
+as validation for the Theseus model.
+"""
 import chess
 import chess.svg
 import numpy as np
-import  requests
+import requests
 
+files = {
+    'a': '1',
+    'b': '2',
+    'c': '3',
+    'd': '4',
+    'e': '5',
+    'f': '6',
+    'g': '7',
+    'h': '8',
+}
 
 def count_pieces(board):
     total_pieces = 0
@@ -33,7 +48,7 @@ def random_fen():
             break
     return board.fen(), board.is_game_over(), pieces
 
-def random_syzygy(verbose=False, iterations=1400):
+def random_syzygy(verbose=False, iterations=10):
     fen_codes = []
     for _ in range(iterations):
         fen, is_over, _ = random_fen()
@@ -46,10 +61,19 @@ def random_syzygy(verbose=False, iterations=1400):
     return fen_codes
 
 def get_syzygy_output(fen_codes=[], url='http://tablebase.lichess.ovh/standard?fen='):
+    y = []
     for fen in fen_codes:
-        response = requests.get(url + fen)
-        print(response)
+        res = requests.get(url + fen).json()
+        cat = res['category']
+        if cat != 'win' and cat != 'cursed-win' and cat != 'maybe-win' and cat != 'draw':
+            continue
+        uci = list(res['moves'][0]['uci'])
+        uci[0] = files[uci[0]]
+        uci[2] = files[uci[2]]
+        modified_string = ''.join(uci)
+        y.append(int(''.join(modified_string)))
+    return np.array(y)
 
 
 if __name__ == '__main__':
-    get_syzygy_output(random_syzygy(True))
+    print(get_syzygy_output(random_syzygy(True)))
