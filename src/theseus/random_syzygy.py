@@ -9,6 +9,7 @@ import chess.svg
 import numpy as np
 import requests
 from theseus import Theseus
+import time
 
 files = {
     'a': '1',
@@ -49,7 +50,7 @@ def random_fen():
             break
     return board.fen(), board.is_game_over(), pieces
 
-def random_syzygy(verbose=True, iterations=14):
+def random_syzygy(verbose=True, iterations=1400):
     fen_codes_readable = []
     for _ in range(iterations):
         fen, is_over, _ = random_fen()
@@ -62,6 +63,14 @@ def random_syzygy(verbose=True, iterations=14):
         print(len(fen_codes))
     return fen_codes, fen_codes_readable
 
+def fetch_with_cooldown(url):
+    while True:
+        try:
+            return requests.get(url).json()
+        except Exception:
+            time.sleep(30) # Wait 30 secods to retry
+            pass
+
 def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
                       url='http://tablebase.lichess.ovh/standard?fen=',
                       verbose=True):
@@ -70,7 +79,7 @@ def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
     X1 = []
     X2 = []
     for i in range(len(fen_codes)):
-        res = requests.get(url + fen_codes[i]).json()
+        res = fetch_with_cooldown(url + fen_codes[i])
         cat = res['category']
         if cat != 'win' and cat != 'cursed-win' and cat != 'maybe-win' and cat != 'draw':
             continue
