@@ -32,3 +32,11 @@ def hidden_layers(max_moves, inputs):
     hidden_layer = K.layers.BatchNormalization()(hidden_layer)
     output_layer = K.layers.Dense(max_moves, activation='softmax')(hidden_layer)
     return output_layer
+
+def compile_model(output_layer, color_input_layer, board_input_layer, moves_input_layer,
+                  metrics=['accuracy']):
+    m = K.models.Model(
+        inputs=[color_input_layer, board_input_layer, moves_input_layer], outputs=output_layer
+    )
+    m.compile(loss='categorical_crossentropy', optimizer=K.optimizers.Adam(), metrics=metrics)
+    return m

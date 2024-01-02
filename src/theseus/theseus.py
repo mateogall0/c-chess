@@ -49,18 +49,18 @@ class Theseus:
          moves_input_layer) = layers.input_layers(self.max_moves)
 
         output_layer = layers.hidden_layers(self.max_moves, merged_inputs)
-
-        m = K.models.Model(
-            inputs=[color_input_layer, board_input_layer, moves_input_layer], outputs=output_layer
+        return layers.compile_model(
+            output_layer,
+            color_input_layer,
+            board_input_layer,
+            moves_input_layer
         )
-        m.compile(loss='categorical_crossentropy', optimizer=K.optimizers.Adam(), metrics=['accuracy'])
-        return m
 
     def default_session_train(self):
         fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         self.session_train_model(self.__engine, fen, exploration_prob=1,
                         batch_size=512,
-                        play_iterations=1000, epochs=200,
+                        play_iterations=1024, epochs=200,
                         exploration_prob_diff_times=5,
                         training_iterations=100)
     @staticmethod
@@ -80,14 +80,14 @@ class Theseus:
 
     def train_model(self, model, fen, exploration_prob=0.2, play_iterations=200,
             training_verbose=True, playing_verbose=False, batch_size=None,
-            shuffle=False, epochs=30, keras_verbose=False):
+            shuffle=False, epochs=30, keras_verbose=False, validation_data=()):
 
         X0, X1, X2, Y = [], [], [], []
 
         for i in range(1, play_iterations + 1):
             if training_verbose: print(f'\r  Playing iteration: {i} / {play_iterations}', end='', flush=True)
             board = chess.Board(fen)
-            who_won, X_c, X_c1, Y_c = self.auto_play(model,board, exploration_prob, playing_verbose)
+            who_won, X_c, X_c1, Y_c = self.auto_play(model, board, exploration_prob, playing_verbose)
             if (who_won == -1):
                 continue
             y = 0 if who_won == 1 else 1
@@ -120,7 +120,8 @@ class Theseus:
         Y_concatenated = np.concatenate(Y, axis=0)
 
         return model.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size,
-                shuffle=shuffle, epochs=epochs, verbose=keras_verbose)
+                         shuffle=shuffle, epochs=epochs, verbose=keras_verbose,
+                         validation_data=validation_data)
 
     def auto_play(self, model, board, exploration_prob=0.2, verbose=True):
         X0 = []
@@ -199,7 +200,11 @@ class Theseus:
                 training_verbose=True, playing_verbose=False, batch_size=None,
                 shuffle=False, epochs=30, exploration_prob_diff_times=10,
                 training_iterations=5, keras_verbose=False):
-
+        val_data = np.load('../../data/val_data/syzygy.npz')
+        X0_val = val_data['X0']
+        X1_val = val_data['X1']
+        X2_val = val_data['X2'].reshape(695, 1, 128)
+        Y_val = val_data['Y']
         current_exploration_prob = exploration_prob
         exploration_prob_diff = training_iterations // exploration_prob_diff_times
         diff_exploration_time = 0
@@ -213,11 +218,11 @@ class Theseus:
             history = self.train_model(model, fen, exploration_prob=current_exploration_prob,
                         batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
                         playing_verbose=playing_verbose, training_verbose=training_verbose,
-                        shuffle=shuffle, keras_verbose=keras_verbose)
+                        shuffle=shuffle, keras_verbose=keras_verbose, validation_data=([X0_val, X1_val, X2_val], Y_val))
             if history is None:
                 print('  Nothing to learn from these iterations...')
             elif not keras_verbose:
-                print(f'  Last recorded accuracy: {history.history["acc"][-1]}')
+                print(f'  Last recorded accuracy: {history.history["val_acc"][-1]}')
 
     def make_move(self, model, fen):
         board = chess.Board(fen)
