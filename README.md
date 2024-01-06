@@ -27,14 +27,19 @@ Executing the following command on the root of the project will automatically ge
 $ conda env create -f env.yml
 ```
 
-After that, you can enter this environment using the following command:
+After that, you can activate this environment using the following command:
 ```bash
 $ conda activate theseus_env
 ```
 
 To exit this environment you can use the following command:
 ```bash
-$ conda deactivate
+(theseus_env) $ conda deactivate
+```
+
+If you want to remove this environment from your system you can use the following command:
+```bash
+$ conda env remove --name theseus_env
 ```
 
 <img src="https://uploads-ssl.webflow.com/6105315644a26f77912a1ada/63eea844ae4e3022154e2878_Holberton.png"  height=40/>

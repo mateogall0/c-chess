@@ -7,6 +7,7 @@ try:
     from .model import layers
 except ImportError:
     from model import layers
+import matplotlib.pyplot as plt
 
 class Theseus:
     max_moves = 128
