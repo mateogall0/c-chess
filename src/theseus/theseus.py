@@ -28,6 +28,7 @@ class Theseus:
         else:
             self.__is_new = False
             self.__engine = K.models.load_model(path)
+        self.__training_records = []
 
     @property
     def is_new(self):
@@ -40,6 +41,10 @@ class Theseus:
     @property
     def engine_summary(self):
         return self.__engine.summary()
+
+    @property
+    def training_records(self):
+        return self.__training_records
 
     def engine_save(self, path='theseus.h5'):
         return self.__engine.save(path)
@@ -57,18 +62,17 @@ class Theseus:
         )
 
     def default_session_train(self):
-        fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-        self.session_train_model(self.__engine, fen, exploration_prob=1,
-                        batch_size=512,
-                        play_iterations=1024, epochs=200,
-                        exploration_prob_diff_times=5,
-                        training_iterations=100)
+        self.session_train_model(self.__engine, exploration_prob=1,
+                                 batch_size=512,
+                                 play_iterations=1024, epochs=200,
+                                 exploration_prob_diff_times=5,
+                                 training_iterations=100)
+
     @staticmethod
     def board_to_bitboard(fen):
         board = chess.Board(fen)
         piece_to_int = {'P': 1, 'N': 2, 'B': 3, 'R': 4, 'Q': 5, 'K': 6,
                         'p': -1, 'n': -2, 'b': -3, 'r': -4, 'q': -5, 'k': -6, '.': 0}
-
         board_array = np.zeros((8, 8), dtype=int)
         for row in range(8):
             for col in range(8):
@@ -196,10 +200,12 @@ class Theseus:
             who_won = -1
         return who_won, X0, X1, Y
 
-    def session_train_model(self, model, fen, exploration_prob=0.2, play_iterations=200,
-                training_verbose=True, playing_verbose=False, batch_size=None,
-                shuffle=False, epochs=30, exploration_prob_diff_times=10,
-                training_iterations=5, keras_verbose=False):
+    def session_train_model(self, model, fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                            exploration_prob=0.2, play_iterations=200,
+                            training_verbose=True, playing_verbose=False, batch_size=None,
+                            shuffle=False, epochs=30, exploration_prob_diff_times=10,
+                            training_iterations=5, keras_verbose=False):
+        self.__training_records = []
         val_data = np.load('../../data/val_data/syzygy.npz')
         X0_val = val_data['X0']
         X1_val = val_data['X1']
@@ -219,10 +225,12 @@ class Theseus:
                         batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
                         playing_verbose=playing_verbose, training_verbose=training_verbose,
                         shuffle=shuffle, keras_verbose=keras_verbose, validation_data=([X0_val, X1_val, X2_val], Y_val))
+            self.__training_records.append(history)
             if history is None:
                 print('  Nothing to learn from these iterations...')
             elif not keras_verbose:
                 print(f'  Last recorded accuracy: {history.history["val_acc"][-1]}')
+        return self.__training_records
 
     def make_move(self, model, fen):
         board = chess.Board(fen)
