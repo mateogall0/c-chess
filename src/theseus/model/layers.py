@@ -12,10 +12,19 @@ def input_layers(max_moves):
 
     hidden_layer_board = K.layers.Dense(64, activation='relu')(board_flattened)
     hidden_layer_moves = K.layers.Dense(max_moves, activation='relu')(moves_flattened)
-    hidden_layer_color = K.layers.Dense(32, activation='relu')(K.layers.Flatten()(K.layers.Embedding(2, 32)(color_input_layer)))
+    hidden_layer_color = K.layers.Dense(32, activation='relu')(
+        K.layers.Flatten()(K.layers.Embedding(2, 32)(color_input_layer))
+    )
 
-    merged_inputs = K.layers.concatenate([hidden_layer_color, hidden_layer_board, hidden_layer_moves])
-    return merged_inputs, color_input_layer, board_input_layer, moves_input_layer
+    merged_inputs = K.layers.concatenate(
+        [hidden_layer_color, hidden_layer_board, hidden_layer_moves]
+    )
+    return (
+        merged_inputs,
+        color_input_layer,
+        board_input_layer,
+        moves_input_layer
+    )
 
 def hidden_layers(max_moves, inputs):
     hidden_layer = K.layers.Dense(64 + max_moves + 32, activation='relu')(inputs)
@@ -36,7 +45,8 @@ def hidden_layers(max_moves, inputs):
 def compile_model(output_layer, color_input_layer, board_input_layer, moves_input_layer,
                   metrics=['accuracy']):
     m = K.models.Model(
-        inputs=[color_input_layer, board_input_layer, moves_input_layer], outputs=output_layer
+        inputs=[color_input_layer, board_input_layer, moves_input_layer],
+        outputs=output_layer
     )
     m.compile(loss='categorical_crossentropy', optimizer=K.optimizers.Adam(), metrics=metrics)
     return m
