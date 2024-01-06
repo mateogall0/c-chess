@@ -3,7 +3,10 @@ import theseus as th
 
 new = th.Theseus(new_model=True)
 
-history = new.default_session_train()
-new.engine_save()
-print(history)
-print(new.is_new)
+history = new.session_train_model(exploration_prob=1,
+                                 batch_size=512,
+                                 play_iterations=10, epochs=200,
+                                 exploration_prob_diff_times=5,
+                                 training_iterations=10)
+
+new.plot_training_records()

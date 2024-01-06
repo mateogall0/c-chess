@@ -63,7 +63,7 @@ class Theseus:
         )
 
     def default_session_train(self):
-        self.session_train_model(self.__engine, exploration_prob=1,
+        self.session_train_model(exploration_prob=1,
                                  batch_size=512,
                                  play_iterations=1024, epochs=200,
                                  exploration_prob_diff_times=5,
@@ -201,7 +201,7 @@ class Theseus:
             who_won = -1
         return who_won, X0, X1, Y
 
-    def session_train_model(self, model, fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    def session_train_model(self, fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
                             exploration_prob=0.2, play_iterations=200,
                             training_verbose=True, playing_verbose=False, batch_size=None,
                             shuffle=False, epochs=30, exploration_prob_diff_times=10,
@@ -222,7 +222,7 @@ class Theseus:
             if diff_exploration_time == exploration_prob_diff_times:
                 current_exploration_prob = 0
             print(f'Training session: {i + 1} / {training_iterations} at {current_exploration_prob * 100}% probability of a random move')
-            history = self.train_model(model, fen, exploration_prob=current_exploration_prob,
+            history = self.train_model(self.engine, fen, exploration_prob=current_exploration_prob,
                         batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
                         playing_verbose=playing_verbose, training_verbose=training_verbose,
                         shuffle=shuffle, keras_verbose=keras_verbose, validation_data=([X0_val, X1_val, X2_val], Y_val))
@@ -262,3 +262,21 @@ class Theseus:
         #print(chosen_move_index)
         pb = list(board.legal_moves)
         return (output, pb[chosen_move_index], possible_moves)
+
+    def plot_training_records(self):
+        legend_labels = []
+        for i, history in enumerate(self.training_records):
+            if history is None: continue
+            plt.plot(history.history['loss'], label=f'Training Run {i + 1}')
+            plt.plot(history.history['val_loss'], label=f'Validation Run {i + 1}')
+            legend_labels.append(f'Training Run {i + 1}')
+            legend_labels.append(f'Validation Run {i + 1}')
+
+        # Sort the legend labels alphabetically
+        legend_labels.sort()
+
+        plt.title('Training and Validation Losses for Multiple Runs')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend(legend_labels)
+        plt.show()
