@@ -21,6 +21,10 @@ class Theseus:
         'g': 7,
         'h': 8,
     }
+    chess_openings = [
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', # standard starting position
+        
+    ]
 
     def __init__(self, new_model=False, path='theseus.h5'):
         if new_model:
@@ -65,9 +69,9 @@ class Theseus:
     def default_session_train(self):
         self.session_train_model(exploration_prob=1,
                                  batch_size=512,
-                                 play_iterations=1024, epochs=200,
+                                 play_iterations=256, epochs=64,
                                  exploration_prob_diff_times=5,
-                                 training_iterations=100)
+                                 training_iterations=64)
 
     @staticmethod
     def board_to_bitboard(fen):
@@ -230,7 +234,8 @@ class Theseus:
             if history is None:
                 print('  Nothing to learn from these iterations...')
             elif not keras_verbose:
-                print(f'  Last recorded accuracy: {history.history["val_acc"][-1]}')
+                print(f'  Last recorded validation accuracy: {history.history["val_acc"][-1]}')
+                print(f'  Last recorded accuracy: {history.history["acc"][-1]}')
         return self.__training_records
 
     def make_move(self, model, fen):
