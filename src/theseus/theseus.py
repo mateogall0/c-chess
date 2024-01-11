@@ -103,7 +103,6 @@ class Bot:
             if training_verbose: print(f'\r  Playing iteration: {i} / {play_iterations}', end='', flush=True)
             try: chess_opening_index = (i) % fen_codes_lenght
             except ZeroDivisionError: chess_opening_index = 0
-            print(self.chess_openings[chess_opening_index])
             board = chess.Board(self.chess_openings[chess_opening_index])
             who_won, X_c, X_c1, Y_c = self.auto_play(model, board, exploration_prob, playing_verbose)
             if (who_won == -1):
@@ -294,3 +293,13 @@ class Bot:
         plt.ylabel('Loss')
         plt.legend(legend_labels)
         plt.show()
+
+
+if __name__ == '__main__':
+    test = Bot(new_model=True)
+
+    test.default_session_train()
+
+    test.engine_save()
+    test.plot_training_records()
+
