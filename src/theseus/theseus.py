@@ -9,7 +9,7 @@ except ImportError:
     from model import layers
 import matplotlib.pyplot as plt
 
-class Theseus:
+class Bot:
     max_moves = 128
     files = {
         'a': 1,
@@ -23,7 +23,12 @@ class Theseus:
     }
     chess_openings = [
         'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', # standard starting position
-        
+        'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2', # Sicilian Defense
+        'rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq - 0 1', # King's Fianchetto Opening
+        'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1', # Queen's Pawn Opening
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1', # King's Pawn Opening
+        'rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq - 0 1', #Nimzowitsch-Larsen Attack
+        # TO DO
     ]
 
     def __init__(self, new_model=False, path='theseus.h5'):
@@ -69,7 +74,7 @@ class Theseus:
     def default_session_train(self):
         self.session_train_model(exploration_prob=1,
                                  batch_size=512,
-                                 play_iterations=256, epochs=64,
+                                 play_iterations=256, epochs=256,
                                  exploration_prob_diff_times=5,
                                  training_iterations=64)
 
@@ -87,15 +92,19 @@ class Theseus:
                     board_array[row, col] = piece_to_int[piece.symbol()]
         return board_array
 
-    def train_model(self, model, fen, exploration_prob=0.2, play_iterations=200,
+    def train_model(self, model, exploration_prob=0.2, play_iterations=200,
             training_verbose=True, playing_verbose=False, batch_size=None,
             shuffle=False, epochs=30, keras_verbose=False, validation_data=()):
 
         X0, X1, X2, Y = [], [], [], []
+        fen_codes_lenght = len(self.chess_openings)
 
         for i in range(1, play_iterations + 1):
             if training_verbose: print(f'\r  Playing iteration: {i} / {play_iterations}', end='', flush=True)
-            board = chess.Board(fen)
+            try: chess_opening_index = (i) % fen_codes_lenght
+            except ZeroDivisionError: chess_opening_index = 0
+            print(self.chess_openings[chess_opening_index])
+            board = chess.Board(self.chess_openings[chess_opening_index])
             who_won, X_c, X_c1, Y_c = self.auto_play(model, board, exploration_prob, playing_verbose)
             if (who_won == -1):
                 continue
@@ -114,8 +123,8 @@ class Theseus:
         X1_concatenated = [item for sublist in X1 for item in sublist]
         X2_concatenated = [item for sublist in X2 for item in sublist]
 
-        for i, x in enumerate(X1_concatenated):
-            X1_concatenated[i] = self.board_to_bitboard(x)
+        for idx, x in enumerate(X1_concatenated):
+            X1_concatenated[idx] = self.board_to_bitboard(x)
 
         X0 = np.array(X0_concatenated)
         X1 = np.array(X1_concatenated)
@@ -205,7 +214,7 @@ class Theseus:
             who_won = -1
         return who_won, X0, X1, Y
 
-    def session_train_model(self, fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    def session_train_model(self,
                             exploration_prob=0.2, play_iterations=200,
                             training_verbose=True, playing_verbose=False, batch_size=None,
                             shuffle=False, epochs=30, exploration_prob_diff_times=10,
@@ -226,7 +235,7 @@ class Theseus:
             if diff_exploration_time == exploration_prob_diff_times:
                 current_exploration_prob = 0
             print(f'Training session: {i + 1} / {training_iterations} at {current_exploration_prob * 100}% probability of a random move')
-            history = self.train_model(self.engine, fen, exploration_prob=current_exploration_prob,
+            history = self.train_model(self.engine, exploration_prob=current_exploration_prob,
                         batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
                         playing_verbose=playing_verbose, training_verbose=training_verbose,
                         shuffle=shuffle, keras_verbose=keras_verbose, validation_data=([X0_val, X1_val, X2_val], Y_val))
