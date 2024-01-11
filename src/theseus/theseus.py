@@ -3,11 +3,13 @@
 from tensorflow import keras as K
 import numpy as np
 import chess
-try:
-    from .model import layers
-except ImportError:
-    from model import layers
 import matplotlib.pyplot as plt
+
+try: from .model import layers
+except ImportError: from model import layers
+
+try: from .data_augmentation import move_indexes
+except ImportError: from data_augmentation import move_indexes
 
 class Bot:
     max_moves = 128
@@ -296,6 +298,12 @@ class Bot:
 
 
 if __name__ == '__main__':
+    """
+    When executing this module a new bot will start its
+    default training session.
+
+    This is used for testing and demonstrations purposes.
+    """
     test = Bot(new_model=True)
 
     test.default_session_train()
