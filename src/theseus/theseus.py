@@ -3,11 +3,13 @@
 from tensorflow import keras as K
 import numpy as np
 import chess
-try:
-    from .model import layers
-except ImportError:
-    from model import layers
 import matplotlib.pyplot as plt
+
+try: from .model import layers
+except ImportError: from model import layers
+
+try: from .data_augmentation import augment_moves_indexes
+except ImportError: from data_augmentation import augment_moves_indexes
 
 class Bot:
     max_moves = 128
@@ -103,7 +105,6 @@ class Bot:
             if training_verbose: print(f'\r  Playing iteration: {i} / {play_iterations}', end='', flush=True)
             try: chess_opening_index = (i) % fen_codes_lenght
             except ZeroDivisionError: chess_opening_index = 0
-            print(self.chess_openings[chess_opening_index])
             board = chess.Board(self.chess_openings[chess_opening_index])
             who_won, X_c, X_c1, Y_c = self.auto_play(model, board, exploration_prob, playing_verbose)
             if (who_won == -1):
@@ -137,7 +138,9 @@ class Bot:
 
         Y_concatenated = np.concatenate(Y, axis=0)
 
-        return model.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size,
+        X2, Y = augment_moves_indexes(X2, Y_concatenated)
+
+        return model.fit((X0, X1, X2), y=Y, batch_size=batch_size,
                          shuffle=shuffle, epochs=epochs, verbose=keras_verbose,
                          validation_data=validation_data)
 
@@ -294,3 +297,22 @@ class Bot:
         plt.ylabel('Loss')
         plt.legend(legend_labels)
         plt.show()
+
+
+if __name__ == '__main__':
+    """
+    When executing this module a new bot will start its
+    default training session.
+
+    This is used for testing and demonstrations purposes.
+    """
+    test = Bot(new_model=True)
+
+    test.session_train_model(exploration_prob=1,
+                                 batch_size=512,
+                                 play_iterations=5, epochs=256,
+                                 exploration_prob_diff_times=5,
+                                 training_iterations=64)
+
+    test.engine_save()
+    test.plot_training_records()
