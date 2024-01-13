@@ -1,4 +1,4 @@
 #!/usr/bin/env python3
 
-def move_indexes():
-    pass
+def augment_moves_indexes(X, Y):
+    return X, Y

@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 try: from .model import layers
 except ImportError: from model import layers
 
-try: from .data_augmentation import move_indexes
-except ImportError: from data_augmentation import move_indexes
+try: from .data_augmentation import augment_moves_indexes
+except ImportError: from data_augmentation import augment_moves_indexes
 
 class Bot:
     max_moves = 128
@@ -138,7 +138,9 @@ class Bot:
 
         Y_concatenated = np.concatenate(Y, axis=0)
 
-        return model.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size,
+        X2, Y = augment_moves_indexes(X2, Y_concatenated)
+
+        return model.fit((X0, X1, X2), y=Y, batch_size=batch_size,
                          shuffle=shuffle, epochs=epochs, verbose=keras_verbose,
                          validation_data=validation_data)
 
@@ -306,8 +308,11 @@ if __name__ == '__main__':
     """
     test = Bot(new_model=True)
 
-    test.default_session_train()
+    test.session_train_model(exploration_prob=1,
+                                 batch_size=512,
+                                 play_iterations=5, epochs=256,
+                                 exploration_prob_diff_times=5,
+                                 training_iterations=64)
 
     test.engine_save()
     test.plot_training_records()
-
