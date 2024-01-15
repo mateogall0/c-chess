@@ -8,7 +8,7 @@ import chess
 import chess.svg
 import numpy as np
 import requests
-from theseus import Theseus
+from theseus import Bot
 import time
 
 files = {
@@ -86,14 +86,14 @@ def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
         board = chess.Board(fen_codes_readable[i])
         who_moves = 1 if board.turn == chess.WHITE else 0
         X0.append(who_moves)
-        X1.append(Theseus.board_to_bitboard(fen=fen_codes_readable[i]))
-        possible_moves = [0 for _ in range(Theseus.max_moves)]
+        X1.append(Bot.board_to_bitboard(fen=fen_codes_readable[i]))
+        possible_moves = [0 for _ in range(Bot.max_moves)]
         for c, moves in enumerate(board.legal_moves):
             current_move = 0
             for j, item in enumerate(str(moves)):
                 if j % 2 == 0:
                     try:
-                        current_move += 10 ** j * Theseus.files[item]
+                        current_move += 10 ** j * Bot.files[item]
                     except KeyError:
                         pass
                     continue
@@ -101,7 +101,7 @@ def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
             possible_moves[c] = current_move
         X2.append(possible_moves)
         uci_s = res['moves'][0]['uci'][:4]
-        chosen_move = np.zeros((Theseus.max_moves,))
+        chosen_move = np.zeros((Bot.max_moves,))
         for j, item in enumerate(board.legal_moves):
             if uci_s == str(item)[:4]:
                 chosen_move[j] = 1
