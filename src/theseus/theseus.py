@@ -32,6 +32,17 @@ class Bot:
         'rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq - 0 1', #Nimzowitsch-Larsen Attack
         # TO DO
     ]
+    __predefined_probability_of_exploration = [
+        1,
+        0.75,
+        0.5,
+        0.4,
+        0.3,
+        0.2,
+        0.1,
+        0.05,
+        0,
+    ]
 
     def __init__(self, new_model=False, path='theseus.h5'):
         if new_model:
@@ -74,11 +85,11 @@ class Bot:
         )
 
     def default_session_train(self):
-        self.session_train_model(exploration_prob=1,
-                                 batch_size=512,
-                                 play_iterations=256, epochs=256,
-                                 exploration_prob_diff_times=5,
-                                 training_iterations=64)
+        return self.session_train_model(
+            batch_size=512,
+            play_iterations=256, epochs=256,
+            training_iterations=64
+        )
 
     @staticmethod
     def board_to_bitboard(fen):
@@ -138,7 +149,7 @@ class Bot:
 
         Y_concatenated = np.concatenate(Y, axis=0)
 
-        X2, Y = augment_moves_indexes(X2, Y_concatenated)
+        X0, X1, X2, Y = augment_moves_indexes(X0, X1, X2, Y_concatenated)
 
         return model.fit((X0, X1, X2), y=Y, batch_size=batch_size,
                          shuffle=shuffle, epochs=epochs, verbose=keras_verbose,
@@ -218,9 +229,9 @@ class Bot:
         return who_won, X0, X1, Y
 
     def session_train_model(self,
-                            exploration_prob=0.2, play_iterations=200,
+                            play_iterations=200,
                             training_verbose=True, playing_verbose=False, batch_size=None,
-                            shuffle=False, epochs=30, exploration_prob_diff_times=10,
+                            shuffle=False, epochs=30,
                             training_iterations=5, keras_verbose=False):
         self.__training_records = []
         val_data = np.load('../../data/val_data/syzygy.npz')
@@ -228,15 +239,10 @@ class Bot:
         X1_val = val_data['X1']
         X2_val = val_data['X2'].reshape(695, 1, 128)
         Y_val = val_data['Y']
-        current_exploration_prob = exploration_prob
-        exploration_prob_diff = training_iterations // exploration_prob_diff_times
-        diff_exploration_time = 0
         for i in range(training_iterations):
-            if i % exploration_prob_diff == 0:
-                current_exploration_prob /= 2
-                diff_exploration_time += 1
-            if diff_exploration_time == exploration_prob_diff_times:
-                current_exploration_prob = 0
+            current_exploration_prob = self.__predefined_probability_of_exploration[
+                i % len(self.__predefined_probability_of_exploration)
+            ]
             print(f'Training session: {i + 1} / {training_iterations} at {current_exploration_prob * 100}% probability of a random move')
             history = self.train_model(self.engine, exploration_prob=current_exploration_prob,
                         batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
@@ -308,11 +314,7 @@ if __name__ == '__main__':
     """
     test = Bot(new_model=True)
 
-    test.session_train_model(exploration_prob=1,
-                                 batch_size=512,
-                                 play_iterations=5, epochs=256,
-                                 exploration_prob_diff_times=5,
-                                 training_iterations=64)
+    test.default_session_train()
 
     test.engine_save()
     test.plot_training_records()
