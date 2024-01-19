@@ -8,9 +8,6 @@ import matplotlib.pyplot as plt
 try: from .model import layers
 except ImportError: from model import layers
 
-try: from .data_augmentation import augment_moves_indexes
-except ImportError: from data_augmentation import augment_moves_indexes
-
 class Bot:
     max_moves = 128
     files = {
@@ -107,7 +104,7 @@ class Bot:
 
     def train_model(self, model, exploration_prob=0.2, play_iterations=200,
             training_verbose=True, playing_verbose=False, batch_size=None,
-            shuffle=False, epochs=30, keras_verbose=False, validation_data=()):
+            shuffle=True, epochs=30, keras_verbose=False, validation_data=()):
 
         X0, X1, X2, Y = [], [], [], []
         fen_codes_lenght = len(self.chess_openings)
@@ -149,9 +146,7 @@ class Bot:
 
         Y_concatenated = np.concatenate(Y, axis=0)
 
-        X0, X1, X2, Y = augment_moves_indexes(X0, X1, X2, Y_concatenated)
-
-        return model.fit((X0, X1, X2), y=Y, batch_size=batch_size,
+        return model.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size,
                          shuffle=shuffle, epochs=epochs, verbose=keras_verbose,
                          validation_data=validation_data)
 
@@ -225,7 +220,7 @@ class Bot:
     def session_train_model(self,
                             play_iterations=200,
                             training_verbose=True, playing_verbose=False, batch_size=None,
-                            shuffle=False, epochs=30,
+                            shuffle=True, epochs=30,
                             training_iterations=5, keras_verbose=False):
         self.__training_records = []
         val_data = np.load('../../data/val_data/syzygy.npz')
