@@ -159,7 +159,6 @@ class Bot:
         X0 = []
         X1 = []
         Y = []
-        #if verbose: print(board)
         while (
             not board.is_checkmate() and not
             board.is_stalemate() and not
@@ -168,7 +167,6 @@ class Bot:
             board.is_repetition()):
             possible_moves = list(board.legal_moves)
             probability = np.random.rand()
-            #print(type(probability))
             if probability < exploration_prob:
                 l = len(possible_moves)
                 output = np.zeros(shape=(l,))
@@ -188,11 +186,8 @@ class Bot:
                             continue
                         current_move += 10 ** j * int(item)
                     pb[c] = current_move
-                #print('Exploration')
             else:
                 output, move, pb = self.make_move(model, board.fen())
-            #print(move)
-            #print(output)
             board.push(move)
             """if verbose:
                 print("===============")
@@ -201,7 +196,6 @@ class Bot:
                 temp = np.zeros(self.max_moves)
                 temp[:len(output)] = output
                 output = temp
-            #print(output.shape)
             X0.append(str(board.fen()))
             X1.append(pb)
             Y.append(output)
@@ -275,14 +269,9 @@ class Bot:
         else: turn = 0
         color = [turn]
         output = model.predict([color, [brd], [[possible_moves]]])
-        #print(output, output.shape)
-        #print(possible_moves)
         limit = possible_moves.index(0)
-        #print('limit:', limit)
         output = output[0, :limit]
-        #print(output)
         chosen_move_index = np.argmax(output)
-        #print(chosen_move_index)
         pb = list(board.legal_moves)
         return (output, pb[chosen_move_index], possible_moves)
 
@@ -295,7 +284,6 @@ class Bot:
             legend_labels.append(f'Training Run {i + 1}')
             legend_labels.append(f'Validation Run {i + 1}')
 
-        # Sort the legend labels alphabetically
         legend_labels.sort()
 
         plt.title('Training and Validation Losses for Multiple Runs')
@@ -310,7 +298,7 @@ if __name__ == '__main__':
     When executing this module a new bot will start its
     default training session.
 
-    This is used for testing and demonstrations purposes.
+    This is used for testing and demonstration purposes.
     """
     test = Bot(new_model=True)
 
