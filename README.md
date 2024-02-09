@@ -42,4 +42,11 @@ If you want to remove this environment from your system you can use the followin
 $ conda env remove --name theseus_env
 ```
 
-<img src="https://uploads-ssl.webflow.com/6105315644a26f77912a1ada/63eea844ae4e3022154e2878_Holberton.png"  height=40/>
+## Validation data
+In the directory <code>data/</code> you can find a "Syzygy" generator that works at randomly getting Chess positions with seven or less pieces. you can get as many samples as you want using:
+```python
+random_syzygy(verbose=False, iterations=1400)
+```
+Note that it will iterate 1400 times and will try to get as many samples as possible, it might get less than that, since the function <code>remove_redundancies()</code> will take care of redundancies in the output.
+
+<img src="https://uploads-ssl.webflow.com/6105315644a26f77912a1ada/63eea844ae4e3022154e2878_Holberton.png" height=40/>
