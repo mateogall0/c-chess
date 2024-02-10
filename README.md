@@ -11,7 +11,30 @@ This project was made as the final MVP for Holberton School's Machine Learning S
 </p>
 
 ## The model
-Theseus' model consists of various layers that are setted using the Keras module.
+Theseus' model consists of various layers that are setted using the Keras module. For simplicity reasons, the layers definitions are split in three functions for the input, the hidden. and output layers.
+
+Note that at the time of writing this document, these layers could probably change, for that in this file they will not be complete as in the current version. To see the current state of these functions you can navigate to <code>[src/theseus/model/layers.py](src/theseus/model/layers.py)</code>.
+
+The input layers that take an input that is <code>max_moves</code>. It sets three different inputs that are who moves, the board as an 8 by 8 array, and a possible moves array:
+```python
+def input_layers(max_moves):
+    color_input_layer = K.layers.Input(shape=(1,), dtype='int32')
+    board_input_layer = K.layers.Input(shape=(8, 8))
+    moves_input_layer = K.layers.Input(shape=(1, max_moves))
+    ...
+```
+
+This is the final function that compiles the model:
+```python
+def compile_model(output_layer, color_input_layer, board_input_layer, moves_input_layer,
+                  metrics=['accuracy']):
+    m = K.models.Model(
+        inputs=[color_input_layer, board_input_layer, moves_input_layer],
+        outputs=output_layer
+    )
+    m.compile(loss='categorical_crossentropy', optimizer=K.optimizers.Adam(), metrics=metrics)
+    return m
+```
 
 ## Training sessions
 This bot uses a combination of supervised learning and reinforcement learning for its training routines taking into consideration the fact that it must learn from its right guesses while also attempting to make correct predictions over data that works as a sort of puzzle for the bot. The idea is to mimic the learning that humans go through while learning chess, the way that we normally play is with a lot of practice while also consulting puzzles to get some more objectively better ways of playing.
