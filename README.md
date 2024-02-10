@@ -47,6 +47,14 @@ In the directory <code>data/</code> you can find a "Syzygy" generator that works
 ```python
 random_syzygy(verbose=False, iterations=1400)
 ```
-Note that it will iterate 1400 times and will try to get as many samples as possible, it might get less than that, since the function <code>remove_redundancies()</code> will take care of redundancies in the output.
+Note that it will iterate 1400 times and will try to get as many samples as possible, it might get less than that, since the function <code>remove_redundancies()</code> will take care of redundancies in the output. The output consists of both a readable and "non-readable" output. The difference lies in the fact that the "non-readable" can be used to fetch the best moves from the Syzygy tablebase API.
+
+Then the output given by <code>random_syzygy</code> can be sent as parameter to:
+```python
+get_syzygy_output(fen_codes=[], fen_codes_readable=[],
+                      url='http://tablebase.lichess.ovh/standard?fen=',
+                      verbose=True)
+```
+This will make calls to the Syzygy tablebase API. This function will return the position, who moves, the choosable moves and the best move provided by the API. All of this already processed in the form of inputs and ouput for the Theseus model for its validation data.
 
 <img src="https://uploads-ssl.webflow.com/6105315644a26f77912a1ada/63eea844ae4e3022154e2878_Holberton.png" height=40/>
