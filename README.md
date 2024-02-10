@@ -10,6 +10,9 @@ This project was made as the final MVP for Holberton School's Machine Learning S
   <img src="https://cdn.worldvectorlogo.com/logos/numpy-1.svg" height=80/>
 </p>
 
+## The model
+Theseus' model consists of various layers that are setted using the Keras module.
+
 ## Training sessions
 This bot uses a combination of supervised learning and reinforcement learning for its training routines taking into consideration the fact that it must learn from its right guesses while also attempting to make correct predictions over data that works as a sort of puzzle for the bot. The idea is to mimic the learning that humans go through while learning chess, the way that we normally play is with a lot of practice while also consulting puzzles to get some more objectively better ways of playing.
 
@@ -51,7 +54,7 @@ Note that it will iterate 1400 times and will try to get as many samples as poss
 
 Then the output given by <code>random_syzygy</code> can be sent as parameter to:
 ```python
-get_syzygy_output(fen_codes=[], fen_codes_readable=[],
+X0, X1, X2, Y = get_syzygy_output(fen_codes=[], fen_codes_readable=[],
                       url='http://tablebase.lichess.ovh/standard?fen=',
                       verbose=True)
 ```
