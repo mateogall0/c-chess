@@ -10,6 +10,29 @@ This project was made as the final MVP for Holberton School's Machine Learning S
   <img src="https://cdn.worldvectorlogo.com/logos/numpy-1.svg" height=80/>
 </p>
 
+## Dependencies
+Dependencies for Theseus are managed using the Anaconda environments. To install Conda on your device you can follow this link: <a href="https://www.anaconda.com/download">Conda installation guide</a>.
+
+Executing the following command on the root of the project will automatically generate a Conda environment with all the dependencies needed:
+```bash
+$ conda env create -f env.yml
+```
+
+After that, you can activate this environment using the following command:
+```bash
+$ conda activate theseus_env
+```
+
+To exit this environment you can use the following command:
+```bash
+(theseus_env) $ conda deactivate
+```
+
+If you want to remove this environment from your system you can use the following command:
+```bash
+$ conda env remove --name theseus_env
+```
+
 ## The model
 Theseus' model consists of various layers that are setted using the Keras module. For simplicity reasons, the layers definitions are split in three functions for the input, the hidden. and output layers.
 
@@ -44,29 +67,6 @@ The training sessions for this model consist of the bot firstly playing a given 
 
 ### Supervised learning
 After this collection of data, the model uses the Keras' <code>fit</code> method to learn from this data. To improve the way Theseus plays, another level of complexity must be added by using validation data. Validation data will help on the preocess of learning to get better and more precise predictions using unseen data. The objective is to get Chess positions with its best solution, fortunatelly a small part of all the Chess possibilities have already been solved and can be reached in chess positions with seven or less pieces. In this case the data is obtained from the <a href="https://syzygy-tables.info/">Syzygy tablebase</a>.
-
-## Dependencies installation 
-Dependencies for Theseus are managed using the Anaconda environments. To install Conda on your device you can follow this link: <a href="https://www.anaconda.com/download">Conda installation guide</a>.
-
-Executing the following command on the root of the project will automatically generate a Conda environment with all the dependencies needed:
-```bash
-$ conda env create -f env.yml
-```
-
-After that, you can activate this environment using the following command:
-```bash
-$ conda activate theseus_env
-```
-
-To exit this environment you can use the following command:
-```bash
-(theseus_env) $ conda deactivate
-```
-
-If you want to remove this environment from your system you can use the following command:
-```bash
-$ conda env remove --name theseus_env
-```
 
 ## Validation data
 In the directory <code>data/</code> you can find a "Syzygy" generator that works at randomly getting Chess positions with seven or less pieces. you can get as many samples as you want using:
