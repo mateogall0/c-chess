@@ -83,4 +83,7 @@ X0, X1, X2, Y = get_syzygy_output(fen_codes=[], fen_codes_readable=[],
 ```
 This will make calls to the Syzygy tablebase API. This function will return the position, who moves, the choosable moves and the best move provided by the API. All of this already processed in the form of inputs and ouput for the Theseus model for its validation data.
 
+## Legacy version
+At <code>[legacy/](legacy/)</code> you can find an older version of Theseus. It features a prototype version of the actual bot with far less capabilities, unorganized code, far less scalability, etc.
+
 <img src="https://uploads-ssl.webflow.com/6105315644a26f77912a1ada/63eea844ae4e3022154e2878_Holberton.png" height=40/>
