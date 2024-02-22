@@ -287,6 +287,9 @@ class Bot:
         plt.legend(legend_labels)
         plt.show()
 
+    def play(self, eninge_only=False):
+        pass
+
 
 if __name__ == '__main__':
     """
