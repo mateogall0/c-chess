@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
-import theseus.theseus as th
+import theseus.engine as th
 
-th.Bot()
+bot = th.Bot(new_model=True)
+
+bot.play(engine_only=False)

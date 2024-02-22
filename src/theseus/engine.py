@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from tensorflow import keras as K
+import chess, random
 import numpy as np
-import chess
 import matplotlib.pyplot as plt
 
 try: from .model import layers
@@ -114,7 +114,7 @@ class Bot:
             try: chess_opening_index = (i) % fen_codes_lenght
             except ZeroDivisionError: chess_opening_index = 0
             board = chess.Board(self.chess_openings[chess_opening_index])
-            who_won, X_c, X_c1, Y_c = self.auto_play(model, board, exploration_prob, playing_verbose)
+            who_won, X_c, X_c1, Y_c = self.__auto_play(model, board, exploration_prob, playing_verbose)
             if (who_won == -1):
                 continue
             y = 0 if who_won == 1 else 1
@@ -150,7 +150,7 @@ class Bot:
                          shuffle=shuffle, epochs=epochs, verbose=keras_verbose,
                          validation_data=validation_data)
 
-    def auto_play(self, model, board, exploration_prob=0.2, verbose=True):
+    def __auto_play(self, model, board, exploration_prob=0.2, verbose=True):
         X0 = []
         X1 = []
         Y = []
@@ -287,8 +287,23 @@ class Bot:
         plt.legend(legend_labels)
         plt.show()
 
-    def play(self, eninge_only=False):
-        pass
+    def play(self, engine_only=False, fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', human_moves_at=None):
+        if human_moves_at is None: random.choice(['white', 'black'])
+        board = chess.Board(fen)
+        turn = "white"
+        while not board.is_game_over():
+            print(board)
+
+            if turn == human_moves_at:
+                move_str = input("White's move: ")
+            else:
+                _, move_str, _ = self.make_move(self.__engine, board.fen())
+
+            board.push(chess.Move.from_uci(move_str))
+
+            turn = "black" if turn == "white" else "white"
+
+        print(f"{turn.capitalize()} wins!")
 
 
 if __name__ == '__main__':
