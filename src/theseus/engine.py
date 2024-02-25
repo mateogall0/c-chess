@@ -321,7 +321,8 @@ class Bot:
             board.push(move)
             print()
 
-        print(f'{turn.capitalize()} wins!')
+        if board.result() == "1/2-1/2": print('Draw.')
+        else: print(f'{turn.capitalize()} wins!')
 
 if __name__ == '__main__':
     """
