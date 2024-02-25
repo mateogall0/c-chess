@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
+"""
+This module contains the Theseus Bot class.
 
+About the modules imported:
+- Keras: used for loading previously trained models.
+- Python-Chess: brings management for the game of Chess.
+- NumPy: manages large arrays and makes random choices.
+- Matplotlib: used to plot data obtained from the bot's traning.
+"""
 from tensorflow import keras as K
-import chess, random
+import chess
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -287,8 +295,11 @@ class Bot:
         plt.legend(legend_labels)
         plt.show()
 
-    def play(self, engine_only=False, fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', human_moves_at=None):
-        if human_moves_at is None: random.choice(['white', 'black'])
+    def play(self,
+             engine_only=False,
+             fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+             human_moves_at=None):
+        if human_moves_at is None: np.random.choice(['white', 'black'])
         board = chess.Board(fen)
         turn = "white"
         while not board.is_game_over():
