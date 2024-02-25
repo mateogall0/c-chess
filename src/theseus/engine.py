@@ -299,23 +299,29 @@ class Bot:
              engine_only=False,
              fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
              human_moves_at=None):
-        if human_moves_at is None: np.random.choice(['white', 'black'])
+        if human_moves_at != 'white' and human_moves_at != 'black':
+            human_moves_at = np.random.choice(['white', 'black'])
+        print(human_moves_at)
         board = chess.Board(fen)
-        turn = "white"
+        turn = 'black'
         while not board.is_game_over():
+            turn = 'black' if turn == 'white' else 'white'
             print(board)
 
-            if turn == human_moves_at:
-                move_str = input("White's move: ")
+            if turn == human_moves_at and not engine_only:
+                while True:
+                    move_str = input(f'{turn.capitalize()} move: ')
+                    try:
+                        move = chess.Move.from_uci(move_str)
+                        break
+                    except ValueError:
+                        print('Invalid input, try again.')
             else:
-                _, move_str, _ = self.make_move(self.__engine, board.fen())
+                _, move, _ = self.make_move(self.__engine, board.fen())
+            board.push(move)
+            print()
 
-            board.push(chess.Move.from_uci(move_str))
-
-            turn = "black" if turn == "white" else "white"
-
-        print(f"{turn.capitalize()} wins!")
-
+        print(f'{turn.capitalize()} wins!')
 
 if __name__ == '__main__':
     """
