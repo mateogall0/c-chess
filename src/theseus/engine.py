@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
+"""
+This module contains the Theseus Bot class.
 
+About the modules imported:
+- Keras: used for loading previously trained models.
+- Python-Chess: brings management for the game of Chess.
+- NumPy: manages large arrays and makes random choices.
+- Matplotlib: used to plot data obtained from the bot's traning.
+"""
 from tensorflow import keras as K
-import chess, random
+import chess
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -287,24 +295,34 @@ class Bot:
         plt.legend(legend_labels)
         plt.show()
 
-    def play(self, engine_only=False, fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', human_moves_at=None):
-        if human_moves_at is None: random.choice(['white', 'black'])
+    def play(self,
+             engine_only=False,
+             fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+             human_moves_at=None):
+        if human_moves_at != 'white' and human_moves_at != 'black':
+            human_moves_at = np.random.choice(['white', 'black'])
+        print(human_moves_at)
         board = chess.Board(fen)
-        turn = "white"
+        turn = 'black'
         while not board.is_game_over():
+            turn = 'black' if turn == 'white' else 'white'
             print(board)
 
-            if turn == human_moves_at:
-                move_str = input("White's move: ")
+            if turn == human_moves_at and not engine_only:
+                while True:
+                    move_str = input(f'{turn.capitalize()} move: ')
+                    try:
+                        move = chess.Move.from_uci(move_str)
+                        break
+                    except ValueError:
+                        print('Invalid input, try again.')
             else:
-                _, move_str, _ = self.make_move(self.__engine, board.fen())
+                _, move, _ = self.make_move(self.__engine, board.fen())
+            board.push(move)
+            print()
 
-            board.push(chess.Move.from_uci(move_str))
-
-            turn = "black" if turn == "white" else "white"
-
-        print(f"{turn.capitalize()} wins!")
-
+        if board.result() == "1/2-1/2": print('Draw.')
+        else: print(f'{turn.capitalize()} wins!')
 
 if __name__ == '__main__':
     """
