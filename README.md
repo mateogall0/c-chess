@@ -1,4 +1,8 @@
-# Theseus - Chess Bot
+<p align="center">
+  <img src="assets/logo-no-bg.png" alt="Theseus logo" height=250/>
+</p>
+
+
 Theseus is a Machine Learning algorithm coded using the Keras algorithm to perform Chess moves per given position.
 
 This project was made as the final MVP for Holberton School's Machine Learning SPE.
