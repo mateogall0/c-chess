@@ -5,8 +5,6 @@
 
 Theseus is a Machine Learning algorithm coded using the Keras algorithm to perform Chess moves per given position.
 
-This project was made as the final MVP for Holberton School's Machine Learning SPE.
-
 <p align="center">
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1869px-Python-logo-notext.svg.png" height=80/>
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Tensorflow_logo.svg/1915px-Tensorflow_logo.svg.png" height=80/>
@@ -90,4 +88,8 @@ This will make calls to the Syzygy tablebase API. This function will return the 
 ## Legacy version
 At <code>[legacy/](legacy/)</code> you can find an older version of Theseus. It features a prototype version of the actual bot with far less capabilities, unorganized code, far less scalability, etc.
 
+<hr>
+This project was made as the final MVP for Holberton School's Machine Learning SPE.
+<br>
+<br>
 <img src="https://uploads-ssl.webflow.com/6105315644a26f77912a1ada/63eea844ae4e3022154e2878_Holberton.png" height=40/>
