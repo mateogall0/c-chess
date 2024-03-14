@@ -66,8 +66,30 @@ def __init__(self, new_model=False, path='theseus.h5'):
     self.__training_records = []
 ```
 It takes as input:
-<code>new_model</code>: if True it defines a new instance of a Keras model.
-<code>path</code>: if the method is going to use an already trained model, the method will take this parameter to load said model.
+
+<code>new_model</code> if True it defines a new instance of a Keras model.
+
+<code>path</code> if the method is going to use an already trained model, the method will take this parameter to load said model.
+
+After this, the engine is defaultly trained, calling the <code>default_session_train</code> method. What this method performs is the following:
+```python
+self.session_train_model(
+    batch_size=512,
+    play_iterations=256, epochs=256,
+    training_iterations=64
+)
+```
+
+Feel free to make your own training session by sending your custom arguments to this function. This is the complete prototype of it:
+```python
+def session_train_model(
+    self,
+    play_iterations=200,
+    training_verbose=True, playing_verbose=False, batch_size=None,
+    shuffle=True, epochs=30,
+    training_iterations=5, keras_verbose=False
+)
+```
 
 ### Play against it
 At <code>[src/](src/)</code> you are going to find a <code>demo.py</code> file that can be used to play against your own stored version of Theseus using the following command:
