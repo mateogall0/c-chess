@@ -39,12 +39,40 @@ $ conda env remove --name theseus_env
 The following steps will instantiate your own version of Theseus and how to play against it.
 
 ### Train it
-At <code>[src/theseus/](src/theseus/)</code> you can find an <code>engine.py</code> file that declares the class Bot.
+At <code>[src/theseus/](src/theseus/)</code> you can find an <code>engine.py</code> file that declares the Bot class. By running this script using the following command you can try out the default training session:
+```bash
+(theseus_env) $ python3 engine.py
+```
+
+This will perform the following instructions:
+```python
+test = Bot(new_model=True)
+
+test.default_session_train()
+
+test.engine_save()
+test.plot_training_records()
+```
+
+It will declare a new instance of this bot using the <code>__init__</code> method declared as follows:
+```python
+def __init__(self, new_model=False, path='theseus.h5'):
+    if new_model:
+        self.__engine = self.new_model()
+        self.__is_new = True
+    else:
+        self.__is_new = False
+        self.__engine = K.models.load_model(path)
+    self.__training_records = []
+```
+It takes as input:
+<code>new_model</code>: if True it defines a new instance of a Keras model.
+<code>path</code>: if the method is going to use an already trained model, the method will take this parameter to load said model.
 
 ### Play against it
 At <code>[src/](src/)</code> you are going to find a <code>demo.py</code> file that can be used to play against your own stored version of Theseus using the following command:
 ```bash
-(theseus_env) $ python3 engine.py
+(theseus_env) $ python3 demo.py
 ```
 
 ## The model
