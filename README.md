@@ -35,6 +35,18 @@ If you want to remove this environment from your system you can use the followin
 $ conda env remove --name theseus_env
 ```
 
+## Try it out
+The following steps will instantiate your own version of Theseus and how to play against it.
+
+### Train it
+At <code>[src/theseus/](src/theseus/)</code> you can find an <code>engine.py</code> file that declares the class Bot.
+
+### Play against it
+At <code>[src/](src/)</code> you are going to find a <code>demo.py</code> file that can be used to play against your own stored version of Theseus using the following command:
+```bash
+(theseus_env) $ python3 engine.py
+```
+
 ## The model
 Theseus' model consists of various layers that are setted using the Keras module. For simplicity reasons, the layers definitions are split in three functions for the input, the hidden. and output layers.
 
