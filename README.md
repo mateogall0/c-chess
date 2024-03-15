@@ -1,7 +1,9 @@
-# Theseus - Chess Bot
-Theseus is a Machine Learning algorithm coded using the Keras algorithm to perform Chess moves per given position.
+<p align="center">
+  <img src="assets/logo-no-bg.png" alt="Theseus logo" height=250/>
+</p>
 
-This project was made as the final MVP for Holberton School's Machine Learning SPE.
+
+Theseus is a Machine Learning algorithm coded using the Keras algorithm to perform Chess moves per given position.
 
 <p align="center">
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1869px-Python-logo-notext.svg.png" height=80/>
@@ -31,6 +33,68 @@ To exit this environment you can use the following command:
 If you want to remove this environment from your system you can use the following command:
 ```bash
 $ conda env remove --name theseus_env
+```
+
+## Try it out
+The following steps will instantiate your own version of Theseus and how to play against it.
+
+### Train it
+At <code>[src/theseus/](src/theseus/)</code> you can find an <code>engine.py</code> file that declares the Bot class. By running this script using the following command you can try out the default training session:
+```bash
+(theseus_env) $ python3 engine.py
+```
+
+This will perform the following instructions:
+```python
+test = Bot(new_model=True)
+
+test.default_session_train()
+
+test.engine_save()
+test.plot_training_records()
+```
+
+It will declare a new instance of this bot using the <code>__init__</code> method declared as follows:
+```python
+def __init__(self, new_model=False, path='theseus.h5'):
+    if new_model:
+        self.__engine = self.new_model()
+        self.__is_new = True
+    else:
+        self.__is_new = False
+        self.__engine = K.models.load_model(path)
+    self.__training_records = []
+```
+It takes as input:
+
+<code>new_model</code> if True it defines a new instance of a Keras model.
+
+<code>path</code> if the method is going to use an already trained model, the method will take this parameter to load said model.
+
+After this, the engine is defaultly trained, calling the <code>default_session_train</code> method. What this method performs is the following:
+```python
+self.session_train_model(
+    batch_size=512,
+    play_iterations=256, epochs=256,
+    training_iterations=64
+)
+```
+
+Feel free to make your own training session by sending your custom arguments to this function. This is the complete prototype of it:
+```python
+def session_train_model(
+    self,
+    play_iterations=200,
+    training_verbose=True, playing_verbose=False, batch_size=None,
+    shuffle=True, epochs=30,
+    training_iterations=5, keras_verbose=False
+)
+```
+
+### Play against it
+At <code>[src/](src/)</code> you are going to find a <code>demo.py</code> file that can be used to play against your own stored version of Theseus using the following command:
+```bash
+(theseus_env) $ python3 demo.py
 ```
 
 ## The model
@@ -86,4 +150,8 @@ This will make calls to the Syzygy tablebase API. This function will return the 
 ## Legacy version
 At <code>[legacy/](legacy/)</code> you can find an older version of Theseus. It features a prototype version of the actual bot with far less capabilities, unorganized code, far less scalability, etc.
 
+<hr>
+This project was made as the final MVP for Holberton School's Machine Learning SPE.
+<br>
+<br>
 <img src="https://uploads-ssl.webflow.com/6105315644a26f77912a1ada/63eea844ae4e3022154e2878_Holberton.png" height=40/>
