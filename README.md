@@ -151,6 +151,9 @@ This will make calls to the Syzygy tablebase API. This function will return the 
 ## Legacy version
 At <code>[legacy/](legacy/)</code> you can find an older version of Theseus. It features a prototype version of the actual bot with far less capabilities, unorganized code, far less scalability, etc.
 
+## Contributions
+If you want to make any contribution to this repository I will be happy to take a look at it in the pull requests section.
+
 <hr>
 This project was made as the final MVP for Holberton School's Machine Learning SPE.
 <br>
