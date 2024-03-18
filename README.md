@@ -6,11 +6,12 @@
 Theseus is a Machine Learning model built using the Keras module to perform Chess moves per given position.
 
 <p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/1869px-Python-logo-notext.svg.png" height=80/>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Tensorflow_logo.svg/1915px-Tensorflow_logo.svg.png" height=80/>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Keras_logo.svg/2048px-Keras_logo.svg.png" height=80/>
-  <img src="https://cdn.worldvectorlogo.com/logos/numpy-1.svg" height=80/>
-  <img src="https://avatars.githubusercontent.com/u/497012?s=280&v=4" height=80/>
+  <img src="assets/logo-py.png" height=80/>
+  
+  <img src="assets/logo-tf.png" height=80/>
+  <img src="assets/keras-logo.png" height=80/>
+  <img src="assets/np-logo.svg" height=80/>
+  <img src="assets/conda-logo.png" height=80/>
 </p>
 
 ## Dependencies
