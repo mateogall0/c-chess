@@ -111,7 +111,7 @@ class Bot:
         return board_array
 
     def train_model(self, model, exploration_prob=0.2, play_iterations=200,
-            training_verbose=True, playing_verbose=False, batch_size=None,
+            training_verbose=True, playing_verbose=False, batch_size=32,
             shuffle=True, epochs=30, keras_verbose=False, validation_data=()):
 
         X0, X1, X2, Y = [], [], [], []
@@ -236,10 +236,19 @@ class Bot:
         X1_val = val_data['X1']
         X2_val = val_data['X2'].reshape(695, 1, 128)
         Y_val = val_data['Y']
+        switch_exploration_prob_at = training_iterations // len(self.__predefined_probability_of_exploration)
+        i_exploration_prob = 0
         for i in range(training_iterations):
-            current_exploration_prob = self.__predefined_probability_of_exploration[
-                i % len(self.__predefined_probability_of_exploration)
-            ]
+            if i != 0 and i % switch_exploration_prob_at == 0: i_exploration_prob += 1
+            try:
+                current_exploration_prob = self.__predefined_probability_of_exploration[
+                    i_exploration_prob
+                ]
+            except IndexError:
+                i_exploration_prob = len(self.__predefined_probability_of_exploration) - 1
+                current_exploration_prob = self.__predefined_probability_of_exploration[
+                    i_exploration_prob
+                ]
             print(f'Training session: {i + 1} / {training_iterations} at {current_exploration_prob * 100}% probability of a random move')
             history = self.train_model(self.engine, exploration_prob=current_exploration_prob,
                         batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
