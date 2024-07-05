@@ -1,0 +1,11 @@
+name: theseus-v2
+channels:
+  - default
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+      - gym
+      - gym-chess
+      - chess
+      - numpy
