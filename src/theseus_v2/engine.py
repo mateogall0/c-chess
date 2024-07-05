@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-import gym
+import gym, gym_chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.logger import TensorBoardOutputFormat
 
-ENV_ID = 'CartPole-v1'
+ENV_ID = 'Chess-v0'
 NUM_ENVS = 1
+
+from wrappers import ChessWrapper
 
 class Engine:
     path = 'ppo_chess'
@@ -15,7 +16,9 @@ class Engine:
         return model
 
     def make_env(self, env_id):
-        return gym.make(env_id)
+        env = gym.make(env_id)
+        env = ChessWrapper(env)
+        return env
 
     def train(self):
         envs = [lambda: self.make_env(ENV_ID) for _ in range(NUM_ENVS)]
