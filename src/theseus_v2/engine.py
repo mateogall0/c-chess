@@ -6,7 +6,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 ENV_ID = 'Chess-v0'
 NUM_ENVS = 1
 
-from wrappers import ChessWrapper
+from theseus_v2.wrappers import ChessWrapper
 
 class Engine:
     path = 'ppo_chess'
@@ -20,11 +20,11 @@ class Engine:
         env = ChessWrapper(env)
         return env
 
-    def train(self):
+    def train(self, total_timesteps=150000):
         envs = [lambda: self.make_env(ENV_ID) for _ in range(NUM_ENVS)]
         vec_env = DummyVecEnv(envs)
         model = PPO('MlpPolicy', vec_env, verbose=1)
-        model.learn(total_timesteps=15000)
+        model.learn(total_timesteps=total_timesteps)
 
         model.save(self.path)
 

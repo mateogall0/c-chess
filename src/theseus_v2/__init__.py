@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
 
-from engine import Engine
+from .engine import Engine
 
 theseus = Engine()

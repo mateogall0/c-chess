@@ -2,7 +2,7 @@
 import gym
 import numpy as np
 from gym import spaces
-import chess, random, gym
+import chess, gym, random
 
 class ChessWrapper(gym.ObservationWrapper):
     def __init__(self, env):
@@ -51,13 +51,14 @@ class ChessWrapper(gym.ObservationWrapper):
         move_uci = self.index_to_move[action]
         move = chess.Move.from_uci(move_uci)
         if not self.env._board.is_legal(move):
-            obs = self.env.reset()
-            reward = 0
-            done = False
-            info = {'illegal_move': True}
-            return self.observation(obs), reward, done, info
+            legal_moves = [move for move in self.env._board.legal_moves]
+            move = random.choice(legal_moves)
+            info = {'random_move': True}
 
         obs, reward, done, info = self.env.step(move)
         if info is None:
             info = {}
         return self.observation(obs), reward, done, info
+    
+    def render(self,):
+        print(self.env.render(mode='unicode'))
