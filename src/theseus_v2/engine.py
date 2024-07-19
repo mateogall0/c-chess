@@ -3,15 +3,27 @@ import gym, gym_chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
+from wrappers import ChessWrapper
 
 
 ENV_ID = 'Chess-v0'
 NUM_ENVS = 1
 
-from .wrappers import ChessWrapper
 
 class Engine:
     path = 'ppo_chess'
+
+    def create_model(self, vec_env: DummyVecEnv) -> PPO:
+        """
+        Create a new PPO model.
+
+        Args:
+            vec_env (DummyVecEnv): Vectorized environment.
+
+        Returns:
+            PPO: Created PPO model.
+        """
+        return PPO('MlpPolicy', vec_env, verbose=1)
 
     def get_model(self) -> PPO:
         """
@@ -20,8 +32,8 @@ class Engine:
         Returns:
             PPO: Loaded model.
         """
-        self.model = PPO.load(self.path)
-        return self.model
+        model = PPO.load(self.path)
+        return model
 
     def make_env(self, env_id: str) -> Env:
         """
@@ -46,7 +58,7 @@ class Engine:
         """
         envs = [lambda: self.make_env(ENV_ID) for _ in range(NUM_ENVS)]
         vec_env = DummyVecEnv(envs)
-        model = PPO('MlpPolicy', vec_env, verbose=1)
+        model = self.create_model(vec_env)
         model.learn(total_timesteps=total_timesteps)
 
         model.save(self.path)
@@ -58,13 +70,14 @@ class Engine:
         Returns:
             int: Total rewards.
         """
+        model = self.get_model()
         env = self.make_env(ENV_ID)
         obs = env.reset()
         episode_reward = 0
         done = False
 
         while not done:
-            action, _ = self.model.predict(obs)
+            action, _ = model.predict(obs)
             obs, reward, done, _ = env.step(action)
             episode_reward += reward
             env.render()
@@ -73,5 +86,5 @@ class Engine:
 
 if __name__ == '__main__':
     engine = Engine()
-    engine.train()
+    engine.train(total_timesteps=1)
     engine.auto_play()
