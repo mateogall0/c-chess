@@ -60,5 +60,6 @@ class ChessWrapper(gym.ObservationWrapper):
             info = {}
         return self.observation(obs), reward, done, info
     
-    def render(self,):
-        print(self.env.render(mode='unicode'))
+    def render(self, mode='unicode'):
+        print(self.env.render(mode=mode))
+        print('=' * 15)
