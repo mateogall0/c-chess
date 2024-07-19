@@ -3,6 +3,7 @@ import gym
 import numpy as np
 from gym import spaces
 import chess, gym, random
+import chess.pgn
 
 class ChessWrapper(gym.ObservationWrapper):
     def __init__(self, env):
@@ -63,3 +64,10 @@ class ChessWrapper(gym.ObservationWrapper):
     def render(self, mode='unicode'):
         print(self.env.render(mode=mode))
         print('=' * 15)
+
+    def get_pgn(self):
+        board = self.env._board
+        game = chess.pgn.Game.from_board(board)
+        exporter = chess.pgn.StringExporter()
+        pgn = game.accept(exporter)
+        return pgn

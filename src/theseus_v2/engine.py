@@ -82,9 +82,10 @@ class Engine:
             episode_reward += reward
             env.render()
 
-        return episode_reward
+        return episode_reward, env.get_pgn()
 
 if __name__ == '__main__':
     engine = Engine()
     engine.train(total_timesteps=1)
-    engine.auto_play()
+    r, p = engine.auto_play()
+    print(p)
