@@ -11,7 +11,14 @@ NUM_ENVS = 1
 
 
 class Engine:
-    path = 'ppo_chess'
+    """
+    Chess 'Theseus' engine class.
+    Defines the Theseus engine that is used for training and playing.
+
+    Class attributes:
+        path (str): contains the path where the engine is stored.
+    """
+    path: str = 'ppo_chess'
 
     def create_model(self, vec_env: DummyVecEnv) -> PPO:
         """
@@ -85,7 +92,10 @@ class Engine:
         return episode_reward, env.get_pgn()
 
 if __name__ == '__main__':
+    """
+    Used mainly for demonstration purposes
+    """
     engine = Engine()
-    engine.train(total_timesteps=1)
+    engine.train(total_timesteps=10000000000)
     r, p = engine.auto_play()
     print(p)

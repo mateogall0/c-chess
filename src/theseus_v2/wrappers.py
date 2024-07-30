@@ -4,9 +4,14 @@ import numpy as np
 from gym import spaces
 import chess, gym, random
 import chess.pgn
+from typing import Tuple
+
 
 class ChessWrapper(gym.ObservationWrapper):
-    def __init__(self, env):
+    """
+    Chess environment wrapper.
+    """
+    def __init__(self, env) -> None:
         super(ChessWrapper, self).__init__(env)
         self.observation_space = spaces.Box(low=0, high=1, shape=(8, 8, 12), dtype=np.float32)
         self.move_to_index, self.index_to_move = self._create_action_space()
@@ -26,10 +31,10 @@ class ChessWrapper(gym.ObservationWrapper):
                         index += 1
         return move_to_index, index_to_move
 
-    def observation(self, obs):
+    def observation(self, obs) -> np.ndarray:
         return self.board_to_array(obs)
 
-    def board_to_array(self, board):
+    def board_to_array(self, board: chess.Board) -> np.ndarray:
         piece_map = {
             chess.PAWN: 0,
             chess.KNIGHT: 1,
@@ -48,7 +53,7 @@ class ChessWrapper(gym.ObservationWrapper):
                 board_array[row, col, piece_type + color_offset] = 1
         return board_array
 
-    def step(self, action):
+    def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
         move_uci = self.index_to_move[action]
         move = chess.Move.from_uci(move_uci)
         if not self.env._board.is_legal(move):
@@ -61,7 +66,7 @@ class ChessWrapper(gym.ObservationWrapper):
             info = {}
         return self.observation(obs), reward, done, info
     
-    def render(self, mode='unicode'):
+    def render(self, mode='unicode') -> None:
         print(self.env.render(mode=mode))
         print('=' * 15)
 
