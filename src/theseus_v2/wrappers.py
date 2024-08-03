@@ -56,12 +56,22 @@ class ChessWrapper(gym.ObservationWrapper):
     def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
         move_uci = self.index_to_move[action]
         move = chess.Move.from_uci(move_uci)
-        if not self.env._board.is_legal(move):
+        is_move_legal = self.env._board.is_legal(move)
+        if not is_move_legal:
             legal_moves = [move for move in self.env._board.legal_moves]
             move = random.choice(legal_moves)
             info = {'random_move': True}
 
         obs, reward, done, info = self.env.step(move)
+        if done:
+            if obs.is_checkmate():
+                reward = 10
+            if obs.is_stalemate():
+                reward = -10
+            if obs.is_insufficient_material() or obs.is_repetition() or obs.can_claim_fifty_moves():
+                reward = 0
+        else:
+            reward = 1
         if info is None:
             info = {}
         return self.observation(obs), reward, done, info

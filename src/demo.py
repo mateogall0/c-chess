@@ -2,6 +2,6 @@
 
 import theseus.engine as th
 
-bot = th.Bot(new_model=True)
+bot = th.Bot(new_model=False, path='./theseus/theseus.h5')
 
-bot.play(engine_only=False)
+bot.play(engine_only=True)

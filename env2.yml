@@ -12,7 +12,7 @@ dependencies:
   - libstdcxx-ng=11.2.0=h1234567_1
   - ncurses=6.4=h6a678d5_0
   - openssl=1.1.1w=h7f8727e_0
-  - pip=24.0=py39h06a4308_0
+  - pip=20.0.2
   - python=3.9.0=hdb3f193_2
   - readline=8.2=h5eee18b_0
   - setuptools=69.5.1=py39h06a4308_0

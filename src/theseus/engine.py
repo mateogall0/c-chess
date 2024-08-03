@@ -39,14 +39,7 @@ class Bot:
     ]
     __predefined_probability_of_exploration = [
         1,
-        0.75,
-        0.5,
-        0.4,
-        0.3,
-        0.2,
-        0.1,
         0.05,
-        0,
     ]
 
     def __init__(self, new_model=False, path='theseus.h5'):
@@ -91,9 +84,9 @@ class Bot:
 
     def default_session_train(self):
         return self.session_train_model(
-            batch_size=512,
-            play_iterations=256, epochs=256,
-            training_iterations=64
+            batch_size=256,
+            play_iterations=4096, epochs=1024,
+            training_iterations=2
         )
 
     @staticmethod
@@ -110,7 +103,7 @@ class Bot:
                     board_array[row, col] = piece_to_int[piece.symbol()]
         return board_array
 
-    def train_model(self, model, exploration_prob=0.2, play_iterations=200,
+    def train_model(self, exploration_prob=0.2, play_iterations=200,
             training_verbose=True, playing_verbose=False, batch_size=32,
             shuffle=True, epochs=30, keras_verbose=False, validation_data=()):
 
@@ -122,7 +115,7 @@ class Bot:
             try: chess_opening_index = (i) % fen_codes_lenght
             except ZeroDivisionError: chess_opening_index = 0
             board = chess.Board(self.chess_openings[chess_opening_index])
-            who_won, X_c, X_c1, Y_c = self.__auto_play(model, board, exploration_prob, playing_verbose)
+            who_won, X_c, X_c1, Y_c = self.__auto_play(self.__engine, board, exploration_prob, playing_verbose)
             if (who_won == -1):
                 continue
             y = 0 if who_won == 1 else 1
@@ -154,7 +147,7 @@ class Bot:
 
         Y_concatenated = np.concatenate(Y, axis=0)
 
-        return model.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size,
+        return self.__engine.fit((X0, X1, X2), y=Y_concatenated, batch_size=batch_size,
                          shuffle=shuffle, epochs=epochs, verbose=keras_verbose,
                          validation_data=validation_data)
 
@@ -238,6 +231,7 @@ class Bot:
         Y_val = val_data['Y']
         switch_exploration_prob_at = training_iterations // len(self.__predefined_probability_of_exploration)
         i_exploration_prob = 0
+
         for i in range(training_iterations):
             if i != 0 and i % switch_exploration_prob_at == 0: i_exploration_prob += 1
             try:
@@ -250,7 +244,7 @@ class Bot:
                     i_exploration_prob
                 ]
             print(f'Training session: {i + 1} / {training_iterations} at {current_exploration_prob * 100}% probability of a random move')
-            history = self.train_model(self.engine, exploration_prob=current_exploration_prob,
+            history = self.train_model(exploration_prob=current_exploration_prob,
                         batch_size=batch_size, play_iterations=play_iterations, epochs=epochs,
                         playing_verbose=playing_verbose, training_verbose=training_verbose,
                         shuffle=shuffle, keras_verbose=keras_verbose, validation_data=([X0_val, X1_val, X2_val], Y_val))

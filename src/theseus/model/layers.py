@@ -13,10 +13,9 @@ def input_layers(max_moves):
     board_pool_layer = K.layers.MaxPooling2D(pool_size=(2, 2))(board_conv_layer_1)
     board_pool_flat = K.layers.Flatten()(board_pool_layer)
 
-    moves_lstm_layer = K.layers.LSTM(units=128, return_sequences=True)(moves_input_layer)
-    moves_lstm_flat = K.layers.Flatten()(moves_lstm_layer)
+    moves_flat = K.layers.Flatten()(moves_input_layer)
 
-    merged_inputs = K.layers.concatenate([color_input_layer, board_pool_flat, moves_lstm_flat])
+    merged_inputs = K.layers.concatenate([color_input_layer, board_pool_flat, moves_flat])
 
     return (
         merged_inputs,
