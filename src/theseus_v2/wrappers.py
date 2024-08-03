@@ -17,7 +17,7 @@ class ChessWrapper(gym.ObservationWrapper):
         self.move_to_index, self.index_to_move = self._create_action_space()
         self.action_space = spaces.Discrete(len(self.move_to_index))
 
-    def _create_action_space(self):
+    def _create_action_space(self) -> Tuple[dict, dict]:
         move_to_index = {}
         index_to_move = {}
         index = 0
@@ -55,6 +55,7 @@ class ChessWrapper(gym.ObservationWrapper):
 
     def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
         move_uci = self.index_to_move[action]
+        board_before = self.env._board.copy()
         move = chess.Move.from_uci(move_uci)
         is_move_legal = self.env._board.is_legal(move)
         if not is_move_legal:
@@ -63,24 +64,28 @@ class ChessWrapper(gym.ObservationWrapper):
             info = {'random_move': True}
 
         obs, reward, done, info = self.env.step(move)
+        board_after = self.env._board.copy()
         if done:
             if obs.is_checkmate():
-                reward = 10
+                reward = 100.0 / len(self.env._board.move_stack)
             if obs.is_stalemate():
-                reward = -10
+                reward = -2.0
             if obs.is_insufficient_material() or obs.is_repetition() or obs.can_claim_fifty_moves():
-                reward = 0
+                reward = 0.0
         else:
-            reward = 1
+            if len(board_before.piece_map()) > len(board_after.piece_map()):
+                reward = 0.2
+            else:
+                reward = 0.0
         if info is None:
             info = {}
         return self.observation(obs), reward, done, info
-    
+
     def render(self, mode='unicode') -> None:
         print(self.env.render(mode=mode))
         print('=' * 15)
 
-    def get_pgn(self):
+    def get_pgn(self) -> str:
         board = self.env._board
         game = chess.pgn.Game.from_board(board)
         exporter = chess.pgn.StringExporter()

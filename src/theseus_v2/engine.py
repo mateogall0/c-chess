@@ -85,7 +85,7 @@ class Engine:
 
         while not done:
             action, _ = model.predict(obs)
-            obs, reward, done, info = env.step(action)
+            obs, reward, done, _ = env.step(action)
             episode_reward += reward
             env.render()
 
@@ -96,6 +96,6 @@ if __name__ == '__main__':
     Used mainly for demonstration purposes
     """
     engine = Engine()
-    engine.train(total_timesteps=1024)
+    engine.train(total_timesteps=100000)
     r, p = engine.auto_play()
     print(p)
