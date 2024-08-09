@@ -89,8 +89,8 @@ class Evaluator:
         return activity_score
 
     def is_active_position(self, board: chess.Board, square: chess.Square) -> bool:
-        # Define criteria for an active piece position
-        return True  # Implement specific criteria for your needs
+        # TODO
+        return True
 
     def king_safety(self, board: chess.Board, side: bool) -> float:
         safety_score = 0.0
