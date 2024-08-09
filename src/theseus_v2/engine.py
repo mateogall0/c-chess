@@ -4,6 +4,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
 from wrappers import ChessWrapper
+from evaluate import Evaluator
 
 
 ENV_ID = 'Chess-v0'
@@ -42,18 +43,19 @@ class Engine:
         model = PPO.load(self.path)
         return model
 
-    def make_env(self, env_id: str) -> Env:
+    def make_env(self, env_id: str, evaluator) -> Env:
         """
         Creates Gym environment with wrapper.
 
         Args:
             env_id (str): Gym environment id.
+            evaluator (any): Chess position evaluator.
 
         Returns:
             Env: Gym environment.
         """
         env = gym.make(env_id)
-        env = ChessWrapper(env)
+        env = ChessWrapper(env, evaluator)
         return env
 
     def train(self, total_timesteps=150000) -> None:
@@ -63,7 +65,7 @@ class Engine:
         Args:
             total_timesteps (int): Number of timesteps to train the model.
         """
-        envs = [lambda: self.make_env(ENV_ID) for _ in range(NUM_ENVS)]
+        envs = [lambda: self.make_env(ENV_ID, Evaluator()) for _ in range(NUM_ENVS)]
         vec_env = DummyVecEnv(envs)
         model = self.create_model(vec_env)
         model.learn(total_timesteps=total_timesteps)

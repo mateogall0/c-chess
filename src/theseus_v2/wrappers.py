@@ -5,17 +5,19 @@ from gym import spaces
 import chess, gym, random
 import chess.pgn
 from typing import Tuple
+from evaluate import Evaluator
 
 
 class ChessWrapper(gym.ObservationWrapper):
     """
     Chess environment wrapper.
     """
-    def __init__(self, env) -> None:
+    def __init__(self, env, evaluator) -> None:
         super(ChessWrapper, self).__init__(env)
         self.observation_space = spaces.Box(low=0, high=1, shape=(8, 8, 12), dtype=np.float32)
         self.move_to_index, self.index_to_move = self._create_action_space()
         self.action_space = spaces.Discrete(len(self.move_to_index))
+        self.evaulator = evaluator
 
     def _create_action_space(self) -> Tuple[dict, dict]:
         move_to_index = {}
@@ -65,18 +67,7 @@ class ChessWrapper(gym.ObservationWrapper):
 
         obs, reward, done, info = self.env.step(move)
         board_after = self.env._board.copy()
-        if done:
-            if obs.is_checkmate():
-                reward = 100.0 / len(self.env._board.move_stack)
-            if obs.is_stalemate():
-                reward = -2.0
-            if obs.is_insufficient_material() or obs.is_repetition() or obs.can_claim_fifty_moves():
-                reward = 0.0
-        else:
-            if len(board_before.piece_map()) > len(board_after.piece_map()):
-                reward = 0.2
-            else:
-                reward = 0.0
+        reward += self.evaulator.evaulate_position(obs, done, board_before, board_after)
         if info is None:
             info = {}
         return self.observation(obs), reward, done, info
