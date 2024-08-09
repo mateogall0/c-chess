@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import chess
 import numpy as np
+import chess.engine
 
 class Evaluator:
+
+
     def evaluate_position(self, obs: np.ndarray, done: bool, board_before: chess.Board,
                           board_after: chess.Board, env) -> float:
         reward = 0.0
@@ -14,43 +17,95 @@ class Evaluator:
             elif board_after.is_insufficient_material() or board_after.is_repetition() or board_after.can_claim_fifty_moves():
                 reward = 0.0
         else:
+            # Evaluate from both perspectives
+            player_reward = self.evaluate_for_side(board_after, not board_after.turn)
+            opponent_reward = self.evaluate_for_side(board_after, board_after.turn)
+            
             # Reward for capturing a piece
             if len(board_before.piece_map()) > len(board_after.piece_map()):
-                reward += 0.2
+                player_reward += 0.2  # Reward for capturing a piece
+                
+            # Combine player and opponent evaluations
+            reward += player_reward - opponent_reward
             
-            # Evaluate the pawn structure after the move
-            reward += self.pawn_structure(board_after)
-
+        
         return reward
-    
-    def pawn_structure(self, board: chess.Board) -> float:
+
+    def evaluate_for_side(self, board: chess.Board, side: bool) -> float:
+        reward = 0.0
+        # Evaluate piece activity
+        reward += self.piece_activity(board, side)
+        
+        # Evaluate pawn structure
+        reward += self.pawn_structure(board, side)
+        
+        # Evaluate king safety
+        reward += self.king_safety(board, side)
+        
+        # Evaluate control of the center
+        reward += self.center_control(board, side)
+        
+        return reward
+
+    def pawn_structure(self, board: chess.Board, side: bool) -> float:
         structure_score = 0.0
-        prior_turn = not board.turn
-        pawns = [square for square, piece in board.piece_map().items() if piece.piece_type == chess.PAWN]
+        pawns = [square for square, piece in board.piece_map().items() if piece.piece_type == chess.PAWN and piece.color == side]
         for square in pawns:
-            if self.is_isolated(board, square, prior_turn):
+            if self.is_isolated(board, square, side):
                 structure_score -= 0.1  # Penalize isolated pawns
-            if self.is_doubled(board, square, prior_turn):
+            if self.is_doubled(board, square, side):
                 structure_score -= 0.1  # Penalize doubled pawns
         return structure_score
 
-    def is_isolated(self, board: chess.Board, square: chess.Square, turn: bool) -> bool:
+    def is_isolated(self, board: chess.Board, square: chess.Square, side: bool) -> bool:
         file_index = chess.square_file(square)
         adjacent_files = [file_index - 1, file_index + 1]
         for adj_file in adjacent_files:
             if 0 <= adj_file <= 7:
                 for rank in range(8):
                     piece = board.piece_at(chess.square(adj_file, rank))
-                    if piece and piece.piece_type == chess.PAWN and piece.color == turn:
+                    if piece and piece.piece_type == chess.PAWN and piece.color == side:
                         return False
         return True
 
-    def is_doubled(self, board: chess.Board, square: chess.Square, turn: bool) -> bool:
+    def is_doubled(self, board: chess.Board, square: chess.Square, side: bool) -> bool:
         file_index = chess.square_file(square)
         rank_index = chess.square_rank(square)
         for rank in range(8):
             if rank != rank_index:
                 piece = board.piece_at(chess.square(file_index, rank))
-                if piece and piece.piece_type == chess.PAWN and piece.color == turn:
+                if piece and piece.piece_type == chess.PAWN and piece.color == side:
                     return True
         return False
+
+    def piece_activity(self, board: chess.Board, side: bool) -> float:
+        activity_score = 0.0
+        # Evaluate activity of pieces (e.g., active piece positions)
+        for square, piece in board.piece_map().items():
+            if piece.color == side and piece.piece_type != chess.PAWN:
+                # Use square directly from piece_map
+                if self.is_active_position(board, square):
+                    activity_score += 0.1
+        return activity_score
+
+    def is_active_position(self, board: chess.Board, square: chess.Square) -> bool:
+        # Define criteria for an active piece position
+        return True  # Implement specific criteria for your needs
+
+    def king_safety(self, board: chess.Board, side: bool) -> float:
+        safety_score = 0.0
+        king_square = board.king(side)
+        if king_square:
+            # Check for surrounding pawns and pieces
+            if board.is_attacked_by(not side, king_square):
+                safety_score -= 0.2
+        return safety_score
+
+    def center_control(self, board: chess.Board, side: bool) -> float:
+        control_score = 0.0
+        center_squares = [chess.square(3, 3), chess.square(3, 4), chess.square(4, 3), chess.square(4, 4)]
+        for square in center_squares:
+            piece = board.piece_at(square)
+            if piece and piece.color == side:
+                control_score += 0.1
+        return control_score
