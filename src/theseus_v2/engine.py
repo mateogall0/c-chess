@@ -80,7 +80,7 @@ class Engine:
             int: Total rewards.
         """
         model = self.get_model()
-        env = self.make_env(ENV_ID)
+        env = self.make_env(ENV_ID, evaluator=Evaluator())
         obs = env.reset()
         episode_reward = 0
         done = False
