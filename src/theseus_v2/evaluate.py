@@ -6,11 +6,11 @@ import numpy as np
 class Evaluator:
     def evaulate_position(self, obs: np.ndarray,
                           done: bool, board_before: chess.Board,
-                          board_after: chess.Board) -> float:
+                          board_after: chess.Board, env) -> float:
         reward = 0
         if done:
             if obs.is_checkmate():
-                reward = 100.0 / len(self.env._board.move_stack)
+                reward = 100.0 / len(env._board.move_stack)
             if obs.is_stalemate():
                 reward = -2.0
             if obs.is_insufficient_material() or obs.is_repetition() or obs.can_claim_fifty_moves():
