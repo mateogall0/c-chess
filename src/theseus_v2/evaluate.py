@@ -5,6 +5,17 @@ import chess.engine
 
 class Evaluator:
 
+    external_paths = {
+        'stockfish': 'bin/stockfish.out'
+    }
+
+    def __init__(self):
+        self.external = {}
+        for name, path in self.external_paths.items():
+            self.external[name] = chess.engine.SimpleEngine.popen_uci(
+                path
+            )
+
 
     def evaluate_position(self, obs: np.ndarray, done: bool, board_before: chess.Board,
                           board_after: chess.Board, env) -> float:
@@ -109,3 +120,7 @@ class Evaluator:
             if piece and piece.color == side:
                 control_score += 0.1
         return control_score
+
+    def __del__(self):
+        for engine in self.external:
+            engine.quit()
