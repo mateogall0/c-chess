@@ -18,7 +18,7 @@ class Evaluator:
 
 
     def evaluate_position(self, obs: np.ndarray, done: bool, board_before: chess.Board,
-                          board_after: chess.Board, env) -> float:
+                          board_after: chess.Board, env, move_done: chess.Move) -> float:
         reward = 0.0
         if done:
             if board_after.is_checkmate():
@@ -38,6 +38,7 @@ class Evaluator:
                 
             # Combine player and opponent evaluations
             reward += player_reward - opponent_reward
+            reward += self.external_evaluation(board_before, move_done)
             
         
         return reward
@@ -122,5 +123,15 @@ class Evaluator:
         return control_score
 
     def __del__(self):
-        for engine in self.external:
-            engine.quit()
+        for engine in self.external.values():
+            engine.close()
+
+    def external_evaluation(self, board_before: chess.Board, move_done: chess.Move) -> float:
+        rewards = 0.0
+        for engine in self.external.values():
+            external_move = engine.play(board_before, chess.engine.Limit(time=0.1))
+            if external_move == move_done:
+                rewards += 2
+            else:
+                rewards -= 0.1
+        return rewards
