@@ -37,6 +37,15 @@ class ChessWrapper(gym.ObservationWrapper):
         return self.board_to_array(obs)
 
     def board_to_array(self, board: chess.Board) -> np.ndarray:
+        """
+        Turns a board into a model-readable array.
+
+        Args:
+            board (chess.Board): Input board.
+
+        Returns:
+            np.ndarray: Processed array board.
+        """
         piece_map = {
             chess.PAWN: 0,
             chess.KNIGHT: 1,
@@ -55,7 +64,19 @@ class ChessWrapper(gym.ObservationWrapper):
                 board_array[row, col, piece_type + color_offset] = 1
         return board_array
 
-    def step(self, action) -> Tuple[np.ndarray, float, bool, dict]:
+    def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
+        """
+        Executes an step on current game state.
+
+        Args:
+            action (np.int64): Action to be executed.
+        
+        Returns:
+            np.ndarray: Observation
+            float: Reward for current action.
+            bool: True if game is finished.
+            dict: Info dictionary.
+        """
         move_uci = self.index_to_move[action]
         board_before = self.env._board.copy()
         move = chess.Move.from_uci(move_uci)
@@ -73,12 +94,25 @@ class ChessWrapper(gym.ObservationWrapper):
         return self.observation(obs), reward, done, info
 
     def render(self, mode='unicode') -> None:
+        """
+        Render the environment.
+
+        Args:
+            mode (str): Mode used to render.
+        """
         print(self.env.render(mode=mode))
         print('=' * 15)
 
     def get_pgn(self) -> str:
+        """
+        Get an exportable Chess game string.
+
+        Returns:
+            str: PGN string containing a whole exportable game of Chess.
+        """
         board = self.env._board
         game = chess.pgn.Game.from_board(board)
         exporter = chess.pgn.StringExporter()
         pgn = game.accept(exporter)
         return pgn
+    
