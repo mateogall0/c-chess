@@ -144,6 +144,6 @@ def store(data: list) -> None:
         json.dump(data, file)
 
 if __name__ == '__main__':
-    fen_codes, fen_codes_readable = random_syzygy(iterations=10)
+    fen_codes, fen_codes_readable = random_syzygy(iterations=3500)
     output = get_syzygy_output_v2(fen_codes)
     store(output)
