@@ -89,7 +89,7 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         reward += self.evaulator.evaluate_position(done, board_before, board_after, self.env, move)
         if DEBUG:
-            print(move_uci, reward, done, info)
+            print('(debug)', move_uci, reward, done, info)
         if info is None:
             info = {}
         

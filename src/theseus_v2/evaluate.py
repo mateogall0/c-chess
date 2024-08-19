@@ -2,6 +2,9 @@
 import chess
 import numpy as np
 import chess.engine
+from config import DEBUG
+import asyncio
+
 
 class Evaluator:
 
@@ -38,9 +41,11 @@ class Evaluator:
                 
             # Combine player and opponent evaluations
             reward += player_reward - opponent_reward
-            reward += self.external_evaluation(board_before, move_done)
-            
-        
+            loop = asyncio.get_event_loop()
+            reward += loop.run_until_complete(
+                self.external_evaluation(board_before, move_done)
+            )
+
         return reward
 
     def evaluate_for_side(self, board: chess.Board, side: bool) -> float:
@@ -126,12 +131,22 @@ class Evaluator:
         for k in self.external.keys():
             self.external[k].close()
 
-    def external_evaluation(self, board_before: chess.Board, move_done: chess.Move) -> float:
+    async def external_evaluation(self, board_before: chess.Board, move_done: chess.Move) -> float:
         rewards = 0.0
-        for engine in self.external.values():
-            external_move = engine.play(board_before, chess.engine.Limit(time=0.1))
+        tasks = [
+            self.external_move(engine, board_before)
+            for engine in self.external.values()
+        ]
+        external_moves = await asyncio.gather(*tasks)
+        if DEBUG:
+            print('(debug)', external_moves)
+        for external_move in external_moves:
             if external_move == move_done:
                 rewards += 2
             else:
                 rewards -= 0.1
         return rewards
+
+    async def external_move(self, engine, board):
+        external_move = engine.play(board, chess.engine.Limit(time=0.1))
+        return external_move
