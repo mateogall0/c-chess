@@ -126,6 +126,7 @@ def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
     )
 
 def get_syzygy_output_v2(fen_codes: list,
+                         fen_codes_readable: list,
                          url='http://tablebase.lichess.ovh/standard?fen='
                          ) -> List[tuple]:
     output = []
@@ -136,7 +137,7 @@ def get_syzygy_output_v2(fen_codes: list,
         if cat != 'win' and cat != 'cursed-win' and cat != 'maybe-win' and cat != 'draw':
             continue
         uci_s = res['moves'][0]['uci']
-        output.append([fen_codes[i], uci_s])
+        output.append([fen_codes_readable[i], uci_s])
     return output
 
 def store(data: list) -> None:
@@ -145,5 +146,5 @@ def store(data: list) -> None:
 
 if __name__ == '__main__':
     fen_codes, fen_codes_readable = random_syzygy(iterations=3500)
-    output = get_syzygy_output_v2(fen_codes)
+    output = get_syzygy_output_v2(fen_codes, fen_codes_readable)
     store(output)
