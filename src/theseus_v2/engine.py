@@ -3,7 +3,7 @@ import gym, gym_chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
-from wrappers import ChessWrapper
+from wrappers import ChessWrapper, SyzygyWrapper
 from evaluate import Evaluator
 from config import ENV_ID, NUM_ENVS
 
@@ -51,8 +51,11 @@ class Engine:
         Returns:
             Env: Gym environment.
         """
-        env = gym.make(env_id)
-        env = ChessWrapper(env, evaluator)
+        env = gym.make(ENV_ID)
+        if env_id == 'syzygy':
+            env = SyzygyWrapper(env, evaluator)
+        else:
+            env = ChessWrapper(env, evaluator)
         return env
 
     def train(self, total_timesteps=150000) -> None:
@@ -62,7 +65,7 @@ class Engine:
         Args:
             total_timesteps (int): Number of timesteps to train the model.
         """
-        envs = [lambda: self.make_env(ENV_ID, Evaluator()) for _ in range(NUM_ENVS)]
+        envs = [lambda: self.make_env(ENV_ID, Evaluator()), lambda: self.make_env('syzygy', None)]
         vec_env = DummyVecEnv(envs)
         model = self.create_model(vec_env)
         model.learn(total_timesteps=total_timesteps)

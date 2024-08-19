@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import gym
+import gym, json
 import numpy as np
 from gym import spaces
 import chess, gym, random
@@ -118,4 +118,33 @@ class ChessWrapper(gym.ObservationWrapper):
         exporter = chess.pgn.StringExporter()
         pgn = game.accept(exporter)
         return pgn
+
+
+class SyzygyWrapper(ChessWrapper):
+    def __init__(self, env, evaluator, path='data/val_data/data.json') -> None:
+        super().__init__(env, evaluator)
+        self.current_position_index = 0
+        with open(path, 'r') as file:
+            self.positions_expected = json.load(file)
     
+    def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
+        """
+        """
+        move_uci = self.index_to_move[action]
+        move = chess.Move.from_uci(move_uci)
+        is_move_legal = self.env._board.is_legal(move)
+        if not is_move_legal:
+            legal_moves = [move for move in self.env._board.legal_moves]
+            move = random.choice(legal_moves)
+            info = {'random_move': True}
+        obs, reward, done, info = self.env.step(move)
+        if move_uci == self.positions_expected[self.current_position_index][1]:
+            reward += 2.0
+        self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
+        self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
+        if DEBUG:
+            print('(debug) Syzygy training -', move_uci, reward, done, info)
+        if info is None:
+            info = {}
+        return self.observation(obs), reward, done, info
+
