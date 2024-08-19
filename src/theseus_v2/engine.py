@@ -43,7 +43,7 @@ class Engine:
         model = PPO.load(self.path)
         return model
 
-    def make_env(self, env_id: str, evaluator) -> Env:
+    def make_env(self, env_id: str, evaluator=None) -> Env:
         """
         Creates Gym environment with wrapper.
 
@@ -80,7 +80,7 @@ class Engine:
             int: Total rewards.
         """
         model = self.get_model()
-        env = self.make_env(ENV_ID, evaluator=Evaluator())
+        env = self.make_env(ENV_ID)
         obs = env.reset()
         episode_reward = 0
         done = False
@@ -98,6 +98,6 @@ if __name__ == '__main__':
     Used mainly for demonstration purposes
     """
     engine = Engine()
-    engine.train(total_timesteps=10)
+    engine.train(total_timesteps=10000)
     r, p = engine.auto_play()
     print(p)
