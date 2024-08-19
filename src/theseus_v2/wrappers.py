@@ -6,7 +6,7 @@ import chess, gym, random
 import chess.pgn
 from typing import Tuple
 from evaluate import Evaluator
-
+from config import DEBUG
 
 class ChessWrapper(gym.ObservationWrapper):
     """
@@ -85,12 +85,14 @@ class ChessWrapper(gym.ObservationWrapper):
             legal_moves = [move for move in self.env._board.legal_moves]
             move = random.choice(legal_moves)
             info = {'random_move': True}
-
         obs, reward, done, info = self.env.step(move)
         board_after = self.env._board.copy()
         reward += self.evaulator.evaluate_position(done, board_before, board_after, self.env, move)
+        if DEBUG:
+            print(move_uci, reward, done, info)
         if info is None:
             info = {}
+        
         return self.observation(obs), reward, done, info
 
     def render(self, mode='unicode') -> None:
