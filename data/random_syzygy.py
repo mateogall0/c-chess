@@ -4,12 +4,10 @@ This module contains a random Chess position generator with a count of
 pieces that goes from 3 to 7. The objective is to obtain unbiased new data
 as validation for the Theseus model.
 """
-import chess
-import chess.svg
+import chess, chess.svg, requests, time, json
 import numpy as np
-import requests
-from theseus import Bot
-import time
+from typing import List, Tuple
+
 
 files = {
     'a': '1',
@@ -32,7 +30,7 @@ def count_pieces(board):
 
     return total_pieces
 
-def remove_redundancies(arr):
+def remove_redundancies(arr: list) -> list:
     return list(set(arr))
 
 def random_fen():
@@ -52,7 +50,9 @@ def random_fen():
 
 def random_syzygy(verbose=True, iterations=1400):
     fen_codes_readable = []
-    for _ in range(iterations):
+    for i in range(iterations):
+        if verbose:
+            print('Iteration:', i)
         fen, is_over, _ = random_fen()
         if not is_over:
             fen_codes_readable.append(fen)
@@ -74,6 +74,7 @@ def fetch_with_cooldown(url):
 def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
                       url='http://tablebase.lichess.ovh/standard?fen=',
                       verbose=True):
+    raise NotImplemented
     Y = []
     X0 = []
     X1 = []
@@ -124,8 +125,25 @@ def get_syzygy_output(fen_codes=[], fen_codes_readable=[],
         np.array(Y),
     )
 
+def get_syzygy_output_v2(fen_codes: list,
+                         url='http://tablebase.lichess.ovh/standard?fen='
+                         ) -> List[tuple]:
+    output = []
+    for i in range(len(fen_codes)):
+        print(output)
+        res = fetch_with_cooldown(url + fen_codes[i])
+        cat = res['category']
+        if cat != 'win' and cat != 'cursed-win' and cat != 'maybe-win' and cat != 'draw':
+            continue
+        uci_s = res['moves'][0]['uci']
+        output.append([fen_codes[i], uci_s])
+    return output
+
+def store(data: list) -> None:
+    with open('data/val_data/data.json', 'w') as file:
+        json.dump(data, file)
 
 if __name__ == '__main__':
-    fen_codes, fen_codes_readable = random_syzygy()
-    X0, X1, X2, Y = get_syzygy_output(fen_codes, fen_codes_readable)
-    np.savez('val_data/syzygy.npz', X0=X0, X1=X1, X2=X2, Y=Y)
+    fen_codes, fen_codes_readable = random_syzygy(iterations=10)
+    output = get_syzygy_output_v2(fen_codes)
+    store(output)
