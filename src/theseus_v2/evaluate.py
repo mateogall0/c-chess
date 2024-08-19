@@ -123,7 +123,7 @@ class Evaluator:
         return control_score
 
     def __del__(self):
-        for k in self.external:
+        for k in self.external.keys():
             self.external[k].close()
 
     def external_evaluation(self, board_before: chess.Board, move_done: chess.Move) -> float:
