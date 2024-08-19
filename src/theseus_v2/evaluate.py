@@ -17,7 +17,7 @@ class Evaluator:
             )
 
 
-    def evaluate_position(self, obs: np.ndarray, done: bool, board_before: chess.Board,
+    def evaluate_position(self, done: bool, board_before: chess.Board,
                           board_after: chess.Board, env, move_done: chess.Move) -> float:
         reward = 0.0
         if done:
@@ -123,8 +123,8 @@ class Evaluator:
         return control_score
 
     def __del__(self):
-        for engine in self.external.values():
-            engine.close()
+        for k in self.external:
+            self.external[k].close()
 
     def external_evaluation(self, board_before: chess.Board, move_done: chess.Move) -> float:
         rewards = 0.0

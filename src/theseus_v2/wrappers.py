@@ -88,7 +88,7 @@ class ChessWrapper(gym.ObservationWrapper):
 
         obs, reward, done, info = self.env.step(move)
         board_after = self.env._board.copy()
-        reward += self.evaulator.evaluate_position(obs, done, board_before, board_after, self.env, move)
+        reward += self.evaulator.evaluate_position(done, board_before, board_after, self.env, move)
         if info is None:
             info = {}
         return self.observation(obs), reward, done, info
