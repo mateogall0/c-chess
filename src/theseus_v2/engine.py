@@ -5,10 +5,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
 from wrappers import ChessWrapper
 from evaluate import Evaluator
-
-
-ENV_ID = 'Chess-v0'
-NUM_ENVS = 1
+from config import ENV_ID, NUM_ENVS
 
 
 class Engine:
