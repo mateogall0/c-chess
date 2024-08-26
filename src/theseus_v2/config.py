@@ -1,5 +1,5 @@
 import os
 
-DEBUG = os.getenv('THESEUS_DEBUG', False)
-ENV_ID = os.getenv('ENV_ID','Chess-v0')
-NUM_ENVS = os.getenv('NUM_ENVS', 1)
+DEBUG = os.getenv('TH_DEBUG', False)
+ENV_ID = os.getenv('TH_ENV_ID','Chess-v0')
+SYZYGY_ONLY = os.getenv('TH_SYZYGY_ONLY', False)

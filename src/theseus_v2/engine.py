@@ -5,7 +5,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
 from wrappers import ChessWrapper, SyzygyWrapper
 from evaluate import Evaluator
-from config import ENV_ID, NUM_ENVS
+from config import ENV_ID, DEBUG, SYZYGY_ONLY
 
 
 class Engine:
@@ -65,7 +65,9 @@ class Engine:
         Args:
             total_timesteps (int): Number of timesteps to train the model.
         """
-        envs = [lambda: self.make_env(ENV_ID, Evaluator()), lambda: self.make_env('syzygy', None)]
+        envs = [lambda: self.make_env('syzygy', None)]
+        if not SYZYGY_ONLY:
+            envs.append(lambda: self.make_env(ENV_ID, Evaluator()))
         vec_env = DummyVecEnv(envs)
         model = self.create_model(vec_env)
         model.learn(total_timesteps=total_timesteps)
@@ -98,6 +100,6 @@ if __name__ == '__main__':
     Used mainly for demonstration purposes
     """
     engine = Engine()
-    engine.train(total_timesteps=10000)
+    engine.train(total_timesteps=1000000)
     r, p = engine.auto_play()
     print(p)

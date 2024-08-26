@@ -9,7 +9,7 @@ import asyncio
 class Evaluator:
 
     external_paths = {
-        'stockfish': 'bin/stockfish.out'
+        'stockfish': 'bin/stockfish'
     }
 
     def __init__(self):
@@ -51,7 +51,7 @@ class Evaluator:
     def evaluate_for_side(self, board: chess.Board, side: bool) -> float:
         reward = 0.0
         # Evaluate piece activity
-        reward += self.piece_activity(board, side)
+        #reward += self.piece_activity(board, side)
         
         # Evaluate pawn structure
         reward += self.pawn_structure(board, side)

@@ -139,7 +139,7 @@ class SyzygyWrapper(ChessWrapper):
             info = {'random_move': True}
         obs, reward, done, info = self.env.step(move)
         if move_uci == self.positions_expected[self.current_position_index][1]:
-            reward += 2.0
+            reward = 5.0
         self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
         self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
         if DEBUG:
