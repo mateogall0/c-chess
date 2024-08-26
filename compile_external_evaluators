@@ -1,0 +1,19 @@
+#!/usr/bin/sh
+REPO_URL="https://github.com/official-stockfish/Stockfish.git"
+TARGET_DIR="$(pwd)/bin"
+BUILD_DIR="Stockfish/src"
+
+git clone $REPO_URL
+
+cd $BUILD_DIR
+
+make build ARCH=x86-64
+
+mkdir -p $TARGET_DIR
+
+mv stockfish $TARGET_DIR/
+
+cd -
+rm -rf Stockfish
+
+echo "Stockfish has been built and moved to $TARGET_DIR."
