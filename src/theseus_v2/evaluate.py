@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import chess
-import numpy as np
 import chess.engine
-from config import DEBUG
+from config import DEBUG, EXTERNAL_EVALUATION_TIME_LIMIT
 import asyncio
 
 
@@ -31,6 +30,7 @@ class Evaluator:
             elif board_after.is_insufficient_material() or board_after.is_repetition() or board_after.can_claim_fifty_moves():
                 reward = 0.0
         else:
+            """
             # Evaluate from both perspectives
             player_reward = self.evaluate_for_side(board_after, not board_after.turn)
             opponent_reward = self.evaluate_for_side(board_after, board_after.turn)
@@ -41,9 +41,10 @@ class Evaluator:
                 
             # Combine player and opponent evaluations
             reward += player_reward - opponent_reward
+            """
             loop = asyncio.get_event_loop()
             reward += loop.run_until_complete(
-                self.external_evaluation(board_before, move_done)
+                self.external_evaluation(board_before, board_after)
             )
 
         return reward
@@ -131,22 +132,26 @@ class Evaluator:
         for k in self.external.keys():
             self.external[k].close()
 
-    async def external_evaluation(self, board_before: chess.Board, move_done: chess.Move) -> float:
-        rewards = 0.0
+    async def external_evaluation(self, board_before: chess.Board, board_after: chess.Board) -> float:
         tasks = [
-            self.external_move(engine, board_before)
+            self.get_external_reward(engine, board_before, board_after)
             for engine in self.external.values()
         ]
-        external_moves = await asyncio.gather(*tasks)
+        external_evaluations = await asyncio.gather(*tasks)
         if DEBUG:
-            print('(debug)', external_moves)
-        for external_move in external_moves:
-            if external_move == move_done:
-                rewards += 2
-            else:
-                rewards -= 0.1
+            print('(debug)', external_evaluations)
+        rewards = sum(external_evaluations)
         return rewards
 
-    async def external_move(self, engine, board):
-        external_move = engine.play(board, chess.engine.Limit(time=0.1))
-        return external_move
+    async def get_external_reward(self, engine, board_before, board_after) -> float:
+        info_before = engine.analyse(board_before, chess.engine.Limit(time=EXTERNAL_EVALUATION_TIME_LIMIT))
+        score_before = info_before['score'].relative.score()
+
+        info_after = engine.analyse(board_after, chess.engine.Limit(time=EXTERNAL_EVALUATION_TIME_LIMIT))
+        score_after = info_after['score'].relative.score()
+        try:
+            reward = score_after - score_before
+        except:
+            reward = 0.0
+
+        return reward

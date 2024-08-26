@@ -130,6 +130,8 @@ class SyzygyWrapper(ChessWrapper):
     def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
         """
         """
+        if DEBUG:
+            print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_uci : {self.index_to_move[action]}')
         move_uci = self.index_to_move[action]
         move = chess.Move.from_uci(move_uci)
         is_move_legal = self.env._board.is_legal(move)
@@ -139,7 +141,7 @@ class SyzygyWrapper(ChessWrapper):
             info = {'random_move': True}
         obs, reward, done, info = self.env.step(move)
         if move_uci == self.positions_expected[self.current_position_index][1]:
-            reward = 5.0
+            reward = 10000.0
         self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
         self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
         if DEBUG:
