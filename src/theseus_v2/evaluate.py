@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import chess
 import chess.engine
-from config import DEBUG, EXTERNAL_EVALUATION_TIME_LIMIT
+from config import DEBUG, EXTERNAL_EVALUATION_TIME_LIMIT, EXTERNAL_EVALUATION_DEPTH_LIMIT
 import asyncio
 
 
@@ -17,6 +17,7 @@ class Evaluator:
             self.external[name] = chess.engine.SimpleEngine.popen_uci(
                 path
             )
+            self.external[name].configure({"Threads": 1})
 
 
     def evaluate_position(self, done: bool, board_before: chess.Board,
@@ -144,10 +145,10 @@ class Evaluator:
         return rewards
 
     async def get_external_reward(self, engine, board_before, board_after) -> float:
-        info_before = engine.analyse(board_before, chess.engine.Limit(time=EXTERNAL_EVALUATION_TIME_LIMIT))
+        info_before = engine.analyse(board_before, chess.engine.Limit(depth=EXTERNAL_EVALUATION_DEPTH_LIMIT))
         score_before = info_before['score'].relative.score()
 
-        info_after = engine.analyse(board_after, chess.engine.Limit(time=EXTERNAL_EVALUATION_TIME_LIMIT))
+        info_after = engine.analyse(board_after, chess.engine.Limit(depth=EXTERNAL_EVALUATION_DEPTH_LIMIT))
         score_after = info_after['score'].relative.score()
         try:
             reward = score_after - score_before

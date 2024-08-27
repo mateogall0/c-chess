@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import gym, gym_chess
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DQN, A2C, SAC
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
 from wrappers import ChessWrapper, SyzygyWrapper
@@ -28,7 +28,7 @@ class Engine:
         Returns:
             PPO: Created PPO model.
         """
-        return PPO('MlpPolicy', vec_env, verbose=1)
+        return A2C('MlpPolicy', vec_env, verbose=1)
 
     def get_model(self) -> PPO:
         """
@@ -89,7 +89,7 @@ class Engine:
 
         while not done:
             action, _ = model.predict(obs)
-            obs, reward, done, _ = env.step(action)
+            obs, reward, done, _ = env.step(action, playing=True)
             episode_reward += reward
             env.render()
 
@@ -100,6 +100,6 @@ if __name__ == '__main__':
     Used mainly for demonstration purposes
     """
     engine = Engine()
-    engine.train(total_timesteps=10000)
+    engine.train(total_timesteps=1)
     r, p = engine.auto_play()
     print(p)

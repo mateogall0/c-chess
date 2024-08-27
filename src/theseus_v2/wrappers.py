@@ -18,11 +18,11 @@ class ChessWrapper(gym.ObservationWrapper):
         self.evaluator = evaluator
         self.update_action_space()
 
-    def update_action_space(self) -> None:
+    def update_action_space(self, restart=False) -> None:
         """
         Update the action space based on current board legal moves.
         """
-        if self.env._board == None:
+        if self.env._board == None or restart:
             self.env._board = chess.Board()
         self.move_to_index, self.index_to_move = self._create_action_space(self.env._board)
         self.action_space = spaces.Discrete(len(self.move_to_index))
@@ -68,7 +68,7 @@ class ChessWrapper(gym.ObservationWrapper):
                 board_array[row, col, piece_type + color_offset] = 1
         return board_array
 
-    def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
+    def step(self, action: np.int64, playing=False) -> Tuple[np.ndarray, float, bool, dict]:
         """
         Executes an step on current game state.
 
@@ -91,7 +91,8 @@ class ChessWrapper(gym.ObservationWrapper):
             chose_ilegal = True
             info = {'random_move': True}
         if DEBUG:
-            print(f'(debug) legal moves: {legal_moves}', )
+            print(f'(debug)\nlegal moves: {legal_moves}', )
+            print(f'(debug) {self.env._board}')
             print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_uci : {move_uci}')
         board_before = self.env._board.copy()
         move = chess.Move.from_uci(move_uci)
@@ -103,8 +104,10 @@ class ChessWrapper(gym.ObservationWrapper):
             print('(debug)', move_uci, reward, done, info)
         if info is None:
             info = {}
-
-        self.update_action_space()
+        if done and not playing:
+            self.update_action_space(restart=True)
+        else:
+            self.update_action_space()
 
         if chose_ilegal: reward = -10.0
 
