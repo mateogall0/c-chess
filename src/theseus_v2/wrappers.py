@@ -87,7 +87,6 @@ class ChessWrapper(gym.ObservationWrapper):
             move_uci = self.index_to_move[int(action)]
         except KeyError:
             move_uci = random.choice(legal_moves)
-            move = random.choice(legal_moves)
             chose_ilegal = True
             info = {'random_move': True}
         if DEBUG:
@@ -111,7 +110,7 @@ class ChessWrapper(gym.ObservationWrapper):
 
         if chose_ilegal: reward = -10.0
 
-        return self.observation(obs), reward, done, info
+        return self.observation(self.env._board), reward, done, info
 
     def render(self, mode='unicode') -> None:
         """
@@ -143,21 +142,32 @@ class SyzygyWrapper(ChessWrapper):
         self.current_position_index = 0
         with open(path, 'r') as file:
             self.positions_expected = json.load(file)
-        self.move_to_index, self.index_to_move = self._create_action_space(self.env._board)
+        self.update_action_space()
     
     def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
         """
         """
-        if DEBUG:
-            print(f'(debug) Syzygy training -  action: {action} - index_to_move: {self.index_to_move} - move_uci : {self.index_to_move[action]}')
-        move_uci = self.index_to_move[action]
-        move = chess.Move.from_uci(move_uci)
-        is_move_legal = self.env._board.is_legal(move)
-        if not is_move_legal:
-            legal_moves = [move for move in self.env._board.legal_moves]
-            move = random.choice(legal_moves)
+        legal_moves = [str(move) for move in self.env._board.legal_moves]
+        chose_ilegal = False
+        try:
+            move_uci = self.index_to_move[int(action)]
+        except KeyError:
+            move_uci = random.choice(legal_moves)
+            chose_ilegal = True
             info = {'random_move': True}
-        obs, reward, done, info = self.env.step(move)
+        if DEBUG:
+            print(f'(debug) Syzygy training -  action: {action} - index_to_move: {self.index_to_move} - move_uci : {move_uci}')
+        move = chess.Move.from_uci(move_uci)
+        try:
+            move = chess.Move.from_uci(move_uci)
+            obs, reward, done, info = self.env.step(move)
+        except ValueError as e:
+            if DEBUG:
+                print(f'(debug) Illegal move exception: {e}')
+            obs = self.observation(self.env._board)
+            reward = -10.0
+            done = False
+            info = {'illegal_move': True}
         if move_uci == self.positions_expected[self.current_position_index][1]:
             reward = 10000.0
         self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
@@ -166,6 +176,8 @@ class SyzygyWrapper(ChessWrapper):
             print('(debug) Syzygy training -', move_uci, reward, done, info)
         if info is None:
             info = {}
+        if chose_ilegal: reward = -10.0
+        self.update_action_space()
 
-        return self.observation(obs), reward, done, info
+        return self.observation(self.env._board), reward, done, info
 
