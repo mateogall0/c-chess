@@ -15,22 +15,26 @@ class ChessWrapper(gym.ObservationWrapper):
     def __init__(self, env, evaluator) -> None:
         super(ChessWrapper, self).__init__(env)
         self.observation_space = spaces.Box(low=0, high=1, shape=(8, 8, 12), dtype=np.float32)
-        self.move_to_index, self.index_to_move = self._create_action_space()
-        self.action_space = spaces.Discrete(len(self.move_to_index))
-        self.evaulator = evaluator
+        self.evaluator = evaluator
+        self.update_action_space()
 
-    def _create_action_space(self) -> Tuple[dict, dict]:
+    def update_action_space(self) -> None:
+        """
+        Update the action space based on current board legal moves.
+        """
+        if self.env._board == None:
+            self.env._board = chess.Board()
+        self.move_to_index, self.index_to_move = self._create_action_space(self.env._board)
+        self.action_space = spaces.Discrete(len(self.move_to_index))
+
+    def _create_action_space(self, board: chess.Board) -> Tuple[dict, dict]:
         move_to_index = {}
         index_to_move = {}
         index = 0
-        for from_square in chess.SQUARES:
-            for to_square in chess.SQUARES:
-                for promotion in [None, chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT]:
-                    move = chess.Move(from_square, to_square, promotion=promotion)
-                    if chess.Board().is_legal(move):
-                        move_to_index[move.uci()] = index
-                        index_to_move[index] = move.uci()
-                        index += 1
+        for move in board.legal_moves:
+            move_to_index[move.uci()] = index
+            index_to_move[index] = move.uci()
+            index += 1
         return move_to_index, index_to_move
 
     def observation(self, obs) -> np.ndarray:
@@ -77,23 +81,33 @@ class ChessWrapper(gym.ObservationWrapper):
             bool: True if game is finished.
             dict: Info dictionary.
         """
-        move_uci = self.index_to_move[action]
+        legal_moves = [str(move) for move in self.env._board.legal_moves]
+        chose_ilegal = False
+        try:
+            move_uci = self.index_to_move[int(action)]
+        except KeyError:
+            move_uci = random.choice(legal_moves)
+            move = random.choice(legal_moves)
+            chose_ilegal = True
+            info = {'random_move': True}
+        if DEBUG:
+            print(f'(debug) legal moves: {legal_moves}', )
+            print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_uci : {move_uci}')
         board_before = self.env._board.copy()
         move = chess.Move.from_uci(move_uci)
-        is_move_legal = self.env._board.is_legal(move)
-        if not is_move_legal:
-            legal_moves = [move for move in self.env._board.legal_moves]
-            move = random.choice(legal_moves)
-            info = {'random_move': True}
         obs, reward, done, info = self.env.step(move)
         board_after = self.env._board.copy()
-        if self.evaulator:
-            reward += self.evaulator.evaluate_position(done, board_before, board_after, self.env, move)
+        if not chose_ilegal and self.evaluator:
+            reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
         if DEBUG:
             print('(debug)', move_uci, reward, done, info)
         if info is None:
             info = {}
-        
+
+        self.update_action_space()
+
+        if chose_ilegal: reward = -10.0
+
         return self.observation(obs), reward, done, info
 
     def render(self, mode='unicode') -> None:
@@ -126,12 +140,13 @@ class SyzygyWrapper(ChessWrapper):
         self.current_position_index = 0
         with open(path, 'r') as file:
             self.positions_expected = json.load(file)
+        self.move_to_index, self.index_to_move = self._create_action_space(self.env._board)
     
     def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
         """
         """
         if DEBUG:
-            print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_uci : {self.index_to_move[action]}')
+            print(f'(debug) Syzygy training -  action: {action} - index_to_move: {self.index_to_move} - move_uci : {self.index_to_move[action]}')
         move_uci = self.index_to_move[action]
         move = chess.Move.from_uci(move_uci)
         is_move_legal = self.env._board.is_legal(move)
@@ -148,5 +163,6 @@ class SyzygyWrapper(ChessWrapper):
             print('(debug) Syzygy training -', move_uci, reward, done, info)
         if info is None:
             info = {}
+
         return self.observation(obs), reward, done, info
 
