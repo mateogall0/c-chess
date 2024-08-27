@@ -6,7 +6,9 @@ import chess, gym, random
 import chess.pgn
 from typing import Tuple
 from evaluate import Evaluator
-from config import DEBUG
+from config import DEBUG, input_shape
+
+
 
 class ChessWrapper(gym.ObservationWrapper):
     """
@@ -14,7 +16,7 @@ class ChessWrapper(gym.ObservationWrapper):
     """
     def __init__(self, env, evaluator) -> None:
         super(ChessWrapper, self).__init__(env)
-        self.observation_space = spaces.Box(low=0, high=1, shape=(8, 8, 12), dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.float32)
         self.evaluator = evaluator
         self.update_action_space()
 
@@ -58,14 +60,20 @@ class ChessWrapper(gym.ObservationWrapper):
             chess.QUEEN: 4,
             chess.KING: 5
         }
-        board_array = np.zeros((8, 8, 12), dtype=np.float32)
+        board_array = np.zeros(input_shape, dtype=np.float32)
+
         for square in chess.SQUARES:
             piece = board.piece_at(square)
             if piece:
-                row, col = divmod(square, 8)
-                piece_type = piece_map[piece.piece_type]
-                color_offset = 6 if piece.color == chess.BLACK else 0
-                board_array[row, col, piece_type + color_offset] = 1
+                row = chess.square_rank(square)
+                col = chess.square_file(square)
+                layer = piece_map[piece.piece_type] + (6 if piece.color == chess.BLACK else 0)
+                board_array[row, col, layer] = 1
+
+        if DEBUG:
+            print(f'(debug) board_array: {board_array}')
+        if board.turn == chess.WHITE:
+            board_array[:, :, 12] = 1
         return board_array
 
     def step(self, action: np.int64, playing=False) -> Tuple[np.ndarray, float, bool, dict]:
@@ -90,8 +98,8 @@ class ChessWrapper(gym.ObservationWrapper):
             chose_ilegal = True
             info = {'random_move': True}
         if DEBUG:
-            print(f'(debug)\nlegal moves: {legal_moves}', )
-            print(f'(debug) {self.env._board}')
+            print(f'(debug) legal moves: {legal_moves}', )
+            print(f'(debug)\n{self.env._board}')
             print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_uci : {move_uci}')
         board_before = self.env._board.copy()
         move = chess.Move.from_uci(move_uci)
@@ -108,7 +116,7 @@ class ChessWrapper(gym.ObservationWrapper):
         else:
             self.update_action_space()
 
-        if chose_ilegal: reward = -10.0
+        if chose_ilegal: reward = -10000.0
 
         return self.observation(self.env._board), reward, done, info
 
