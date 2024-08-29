@@ -60,7 +60,7 @@ class ChessWrapper(gym.ObservationWrapper):
             chess.QUEEN: 4,
             chess.KING: 5
         }
-        board_array = np.zeros(input_shape, dtype=np.float32)
+        board_array = np.zeros((8, 8, 17), dtype=np.float32)
 
         for square in chess.SQUARES:
             piece = board.piece_at(square)
@@ -70,10 +70,18 @@ class ChessWrapper(gym.ObservationWrapper):
                 layer = piece_map[piece.piece_type] + (6 if piece.color == chess.BLACK else 0)
                 board_array[row, col, layer] = 1
 
-        if DEBUG:
-            print(f'(debug) board_array: {board_array}')
         if board.turn == chess.WHITE:
             board_array[:, :, 12] = 1
+        
+        if board.has_kingside_castling_rights(chess.WHITE):
+            board_array[:, :, 13] = 1
+        if board.has_queenside_castling_rights(chess.WHITE):
+            board_array[:, :, 14] = 1
+        if board.has_kingside_castling_rights(chess.BLACK):
+            board_array[:, :, 15] = 1
+        if board.has_queenside_castling_rights(chess.BLACK):
+            board_array[:, :, 16] = 1
+
         return board_array
     
     @classmethod
@@ -109,10 +117,16 @@ class ChessWrapper(gym.ObservationWrapper):
                     color = chess.BLACK if layer >= 6 else chess.WHITE
                     board.set_piece_at(square, chess.Piece(piece_type, color))
 
-        if board_array[0, 0, 12] == 1:
-            board.turn = chess.WHITE
-        else:
-            board.turn = chess.BLACK
+        board.turn = chess.WHITE if board_array[0, 0, 12] == 1 else chess.BLACK
+
+        if board_array[0, 0, 13] == 1:
+            board.castling_rights |= chess.BB_H1
+        if board_array[0, 0, 14] == 1:
+            board.castling_rights |= chess.BB_A1
+        if board_array[0, 0, 15] == 1:
+            board.castling_rights |= chess.BB_H8
+        if board_array[0, 0, 16] == 1:
+            board.castling_rights |= chess.BB_A8
 
         return board
 
