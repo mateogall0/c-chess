@@ -6,6 +6,6 @@ if __name__ == '__main__':
     Used mainly for demonstration purposes
     """
     engine = Engine()
-    engine.train(total_timesteps=8000)
-    r, p = engine.auto_play()
+    engine.train(total_timesteps=1)
+    r, p = engine.auto_play(render=False)
     print(p)

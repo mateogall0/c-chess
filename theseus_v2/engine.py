@@ -31,15 +31,15 @@ class Engine:
         return PPO('MlpPolicy',
                    vec_env,
                    verbose=1,
-                   learning_rate=1e-5,
+                   learning_rate=1e-8,
                    n_steps=2048,
-                   batch_size=64,
-                   n_epochs=10,
-                   gamma=0.99,
+                   batch_size=256,
+                   n_epochs=5,
+                   gamma=0.995,
                    gae_lambda=0.95,
                    clip_range=0.2,
-                   ent_coef=0.01,
-                   vf_coef=0.5,
+                   ent_coef=0.02,
+                   vf_coef=0.4,
                    max_grad_norm=0.5,
                 )
 
@@ -113,6 +113,6 @@ if __name__ == '__main__':
     Used mainly for demonstration purposes
     """
     engine = Engine()
-    engine.train(total_timesteps=10000)
+    engine.train(total_timesteps=1)
     r, p = engine.auto_play()
     print(p)

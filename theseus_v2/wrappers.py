@@ -15,7 +15,7 @@ class ChessWrapper(gym.ObservationWrapper):
     """
     def __init__(self, env, evaluator) -> None:
         super(ChessWrapper, self).__init__(env)
-        self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.int8)
         self.evaluator = evaluator
         self.update_action_space()
 
