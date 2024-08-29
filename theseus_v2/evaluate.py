@@ -135,7 +135,7 @@ class Evaluator:
 
     async def external_evaluation(self, board_before: chess.Board, board_after: chess.Board) -> float:
         tasks = [
-            self.get_external_reward(engine, board_before, board_after)
+            self.get_external_reward_wrapper(engine, board_before, board_after)
             for engine in self.external.values()
         ]
         external_evaluations = await asyncio.gather(*tasks)
@@ -144,7 +144,10 @@ class Evaluator:
         rewards = sum(external_evaluations)
         return rewards
 
-    async def get_external_reward(self, engine, board_before, board_after) -> float:
+    async def get_external_reward_wrapper(self, engine, board_before, board_after) -> float:
+        return self.get_external_reward(engine, board_before, board_after)
+
+    def get_external_reward(self, engine, board_before, board_after) -> float:
         info_before = engine.analyse(board_before, chess.engine.Limit(depth=EXTERNAL_EVALUATION_DEPTH_LIMIT))
         score_before = info_before['score'].relative.score()
 
@@ -157,4 +160,4 @@ class Evaluator:
         except:
             reward = 0.0
 
-        return reward
+        return reward / 100

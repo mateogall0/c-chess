@@ -170,7 +170,7 @@ class ChessWrapper(gym.ObservationWrapper):
         else:
             self.update_action_space()
 
-        if chose_ilegal: reward = -10000.0
+        if chose_ilegal: reward = -50.0
 
         return self.observation(self.env._board), reward, done, info
 

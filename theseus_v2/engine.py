@@ -28,7 +28,20 @@ class Engine:
         Returns:
             PPO: Created PPO model.
         """
-        return PPO('MlpPolicy', vec_env, verbose=1)
+        return PPO('MlpPolicy',
+                   vec_env,
+                   verbose=1,
+                   learning_rate=1e-5,
+                   n_steps=2048,
+                   batch_size=64,
+                   n_epochs=10,
+                   gamma=0.99,
+                   gae_lambda=0.95,
+                   clip_range=0.2,
+                   ent_coef=0.01,
+                   vf_coef=0.5,
+                   max_grad_norm=0.5,
+                )
 
     def get_model(self) -> PPO:
         """
@@ -74,7 +87,7 @@ class Engine:
 
         model.save(self.path)
 
-    def auto_play(self) -> int:
+    def auto_play(self, render=True) -> int:
         """
         Bot-only play.
 
@@ -91,7 +104,7 @@ class Engine:
             action, _ = model.predict(obs)
             obs, reward, done, _ = env.step(action, playing=True)
             episode_reward += reward
-            env.render()
+            if render: env.render()
 
         return episode_reward, env.get_pgn()
 
