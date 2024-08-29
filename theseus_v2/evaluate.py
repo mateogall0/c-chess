@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import chess
 import chess.engine
-from theseus_v2.config import DEBUG, EXTERNAL_EVALUATION_TIME_LIMIT, EXTERNAL_EVALUATION_DEPTH_LIMIT
+from theseus_v2.config import DEBUG, EXTERNAL_EVALUATION_DEPTH_LIMIT, reward_factor
 import asyncio
 
 
@@ -24,12 +24,7 @@ class Evaluator:
                           board_after: chess.Board, env, move_done: chess.Move) -> float:
         reward = 0.0
         if done:
-            if board_after.is_checkmate():
-                reward = 100.0 / len(env._board.move_stack)
-            elif board_after.is_stalemate():
-                reward = -2.0
-            elif board_after.is_insufficient_material() or board_after.is_repetition() or board_after.can_claim_fifty_moves():
-                reward = 0.0
+            pass
         else:
             """
             # Evaluate from both perspectives
@@ -160,4 +155,4 @@ class Evaluator:
         except:
             reward = 0.0
 
-        return reward / 100
+        return (reward / 100) / reward_factor

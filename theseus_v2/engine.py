@@ -29,19 +29,19 @@ class Engine:
             PPO: Created PPO model.
         """
         return PPO('MlpPolicy',
-                   vec_env,
-                   verbose=1,
-                   learning_rate=1e-8,
-                   n_steps=2048,
-                   batch_size=256,
-                   n_epochs=5,
-                   gamma=0.995,
-                   gae_lambda=0.95,
-                   clip_range=0.2,
-                   ent_coef=0.02,
-                   vf_coef=0.4,
-                   max_grad_norm=0.5,
-                )
+            vec_env,
+            verbose=1,
+            learning_rate=0.001,
+            n_steps=1024,
+            batch_size=128,
+            n_epochs=20,
+            gamma=0.99,
+            gae_lambda=0.95,
+            clip_range=0.2,
+            ent_coef=0.2,
+            vf_coef=0.2,
+            max_grad_norm=0.5,
+        )
 
     def get_model(self) -> PPO:
         """
@@ -101,7 +101,7 @@ class Engine:
             int: Total rewards.
         """
         model = self.get_model()
-        env = self.make_env(ENV_ID)
+        env = self.make_env(ENV_ID, evaluator=None)
         obs = env.reset()
         episode_reward = 0
         done = False

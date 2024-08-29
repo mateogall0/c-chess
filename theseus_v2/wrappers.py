@@ -82,13 +82,6 @@ class ChessWrapper(gym.ObservationWrapper):
         if board.has_queenside_castling_rights(chess.BLACK):
             board_array[:, :, 16] = 1
 
-        legal_moves = [move.uci() for move in board.legal_moves]
-        for move in legal_moves:
-            move_start_square = chess.parse_square(move[:2])
-            move_end_square = chess.parse_square(move[2:4])
-            board_array[chess.square_rank(move_start_square), chess.square_file(move_start_square), 17] = 1
-            board_array[chess.square_rank(move_end_square), chess.square_file(move_end_square), 17] = 1
-
         return board_array
     
     @classmethod
@@ -168,6 +161,8 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         if not chose_ilegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
+        if reward < -1.0:
+            self.env._board = board_before
         if DEBUG:
             print('(debug)', move_uci, reward, done, info)
         if info is None:
@@ -177,9 +172,9 @@ class ChessWrapper(gym.ObservationWrapper):
         else:
             self.update_action_space()
 
-        if chose_ilegal: reward = -10.0
+        if chose_ilegal: reward = -100.0 / reward_factor
 
-        return self.observation(self.env._board), reward / reward_factor, done, info
+        return self.observation(self.env._board), reward, done, info
 
     def render(self, mode='unicode') -> None:
         """
@@ -241,12 +236,12 @@ class SyzygyWrapper(ChessWrapper):
             reward = 10.0
         self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
         self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
-        if chose_ilegal: reward = -10.0
+        if chose_ilegal: reward = -10.0 / reward_factor
         if DEBUG:
             print('(debug) Syzygy training -', move_uci, reward, done, info)
         if info is None:
             info = {}
         self.update_action_space()
 
-        return self.observation(self.env._board),  reward / reward_factor, done, info
+        return self.observation(self.env._board),  reward, done, info
 
