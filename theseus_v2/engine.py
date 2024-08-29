@@ -6,6 +6,7 @@ from gym import Env
 from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY
+from theseus_v2.policy import CustomMlpPolicy
 
 
 class Engine:
@@ -28,19 +29,19 @@ class Engine:
         Returns:
             PPO: Created PPO model.
         """
-        return PPO('MlpPolicy',
+        return PPO(CustomMlpPolicy,
             vec_env,
             verbose=1,
-            learning_rate=0.001,
-            n_steps=1024,
+            learning_rate=0.00001,
+            n_steps=2048,
             batch_size=128,
-            n_epochs=20,
-            gamma=0.99,
+            n_epochs=10,
+            gamma=0.01,
             gae_lambda=0.95,
-            clip_range=0.2,
-            ent_coef=0.2,
-            vf_coef=0.2,
-            max_grad_norm=0.5,
+            clip_range=0.3,
+            ent_coef=0.01,
+            vf_coef=0.5,
+            max_grad_norm=0.1,
         )
 
     def get_model(self) -> PPO:
