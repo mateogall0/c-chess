@@ -13,6 +13,9 @@ class ChessWrapper(gym.ObservationWrapper):
     """
     Chess environment wrapper.
     """
+    __max_retries = 16
+    __current_retry = 0
+
     def __init__(self, env, evaluator) -> None:
         super(ChessWrapper, self).__init__(env)
         self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.int8)
@@ -161,8 +164,11 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         if not chose_ilegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
-        if reward < -1.0:
+        if reward < -1.0 and self.__current_retry < self.__max_retries:
+            self.__current_retry += 1
             self.env._board = board_before
+        else:
+            self.__current_retry = 0
         if DEBUG:
             print('(debug)', move_uci, reward, done, info)
         if info is None:
