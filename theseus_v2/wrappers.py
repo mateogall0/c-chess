@@ -60,7 +60,7 @@ class ChessWrapper(gym.ObservationWrapper):
             chess.QUEEN: 4,
             chess.KING: 5
         }
-        board_array = np.zeros((8, 8, 17), dtype=np.float32)
+        board_array = np.zeros(input_shape, dtype=np.float32)
 
         for square in chess.SQUARES:
             piece = board.piece_at(square)
