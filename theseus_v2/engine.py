@@ -5,7 +5,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
 from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper
 from theseus_v2.evaluate import Evaluator
-from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY
+from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY
 
 
 class Engine:
@@ -78,9 +78,15 @@ class Engine:
         Args:
             total_timesteps (int): Number of timesteps to train the model.
         """
-        envs = [lambda: self.make_env('syzygy', None)]
-        if not SYZYGY_ONLY:
-            envs.append(lambda: self.make_env(ENV_ID, Evaluator()))
+        envs = []
+        syzygy_env = lambda: self.make_env('syzygy', None)
+        training_env = lambda: self.make_env(ENV_ID, Evaluator())
+        if SYZYGY_ONLY:
+            envs.append(syzygy_env)
+        elif NO_SYZYGY:
+            envs.append(training_env)
+        else:
+            envs = [training_env, syzygy_env]
         vec_env = DummyVecEnv(envs)
         model = self.create_model(vec_env)
         model.learn(total_timesteps=total_timesteps)
