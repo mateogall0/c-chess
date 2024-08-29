@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import chess
 import chess.engine
-from config import DEBUG, EXTERNAL_EVALUATION_TIME_LIMIT, EXTERNAL_EVALUATION_DEPTH_LIMIT
+from theseus_v2.config import DEBUG, EXTERNAL_EVALUATION_TIME_LIMIT, EXTERNAL_EVALUATION_DEPTH_LIMIT
 import asyncio
 
 

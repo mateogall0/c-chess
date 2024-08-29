@@ -5,8 +5,7 @@ from gym import spaces
 import chess, gym, random
 import chess.pgn
 from typing import Tuple
-from evaluate import Evaluator
-from config import DEBUG, input_shape
+from theseus_v2.config import DEBUG, input_shape
 
 
 
@@ -42,7 +41,8 @@ class ChessWrapper(gym.ObservationWrapper):
     def observation(self, obs) -> np.ndarray:
         return self.board_to_array(obs)
 
-    def board_to_array(self, board: chess.Board) -> np.ndarray:
+    @classmethod
+    def board_to_array(cls, board: chess.Board) -> np.ndarray:
         """
         Turns a board into a model-readable array.
 
@@ -75,6 +75,46 @@ class ChessWrapper(gym.ObservationWrapper):
         if board.turn == chess.WHITE:
             board_array[:, :, 12] = 1
         return board_array
+    
+    @classmethod
+    def array_to_board(cls, board_array: np.ndarray) -> chess.Board:
+        """
+        Turns a model-readable array back into a chess board.
+
+        Args:
+            board_array (np.ndarray): Processed array board.
+
+        Returns:
+            chess.Board: The corresponding chess board.
+        """
+        piece_map = {
+            0: chess.PAWN,
+            1: chess.KNIGHT,
+            2: chess.BISHOP,
+            3: chess.ROOK,
+            4: chess.QUEEN,
+            5: chess.KING
+        }
+
+        board = chess.Board()
+        board.clear()
+
+        for square in chess.SQUARES:
+            row = chess.square_rank(square)
+            col = chess.square_file(square)
+            
+            for layer in range(12):
+                if board_array[row, col, layer] == 1:
+                    piece_type = piece_map[layer % 6]
+                    color = chess.BLACK if layer >= 6 else chess.WHITE
+                    board.set_piece_at(square, chess.Piece(piece_type, color))
+
+        if board_array[0, 0, 12] == 1:
+            board.turn = chess.WHITE
+        else:
+            board.turn = chess.BLACK
+
+        return board
 
     def step(self, action: np.int64, playing=False) -> Tuple[np.ndarray, float, bool, dict]:
         """

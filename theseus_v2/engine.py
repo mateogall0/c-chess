@@ -3,9 +3,9 @@ import gym, gym_chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
-from wrappers import ChessWrapper, SyzygyWrapper
-from evaluate import Evaluator
-from config import ENV_ID, DEBUG, SYZYGY_ONLY
+from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper
+from theseus_v2.evaluate import Evaluator
+from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY
 
 
 class Engine:

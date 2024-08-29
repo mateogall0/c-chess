@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from unittest import TestCase
-from src.theseus_v2.wrappers import ChessWrapper
+from theseus_v2 import ChessWrapper
 import chess
 import numpy as np
 
