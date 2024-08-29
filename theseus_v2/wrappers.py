@@ -5,7 +5,7 @@ from gym import spaces
 import chess, gym, random
 import chess.pgn
 from typing import Tuple
-from theseus_v2.config import DEBUG, input_shape
+from theseus_v2.config import DEBUG, input_shape, reward_factor
 
 
 
@@ -170,9 +170,9 @@ class ChessWrapper(gym.ObservationWrapper):
         else:
             self.update_action_space()
 
-        if chose_ilegal: reward = -50.0
+        if chose_ilegal: reward = -10.0
 
-        return self.observation(self.env._board), reward, done, info
+        return self.observation(self.env._board), reward / reward_factor, done, info
 
     def render(self, mode='unicode') -> None:
         """
@@ -227,19 +227,19 @@ class SyzygyWrapper(ChessWrapper):
             if DEBUG:
                 print(f'(debug) Illegal move exception: {e}')
             obs = self.observation(self.env._board)
-            reward = -10.0
+            chose_ilegal = True
             done = False
             info = {'illegal_move': True}
         if move_uci == self.positions_expected[self.current_position_index][1]:
-            reward = 10000.0
+            reward = 10.0
         self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
         self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
+        if chose_ilegal: reward = -10.0
         if DEBUG:
             print('(debug) Syzygy training -', move_uci, reward, done, info)
         if info is None:
             info = {}
-        if chose_ilegal: reward = -10.0
         self.update_action_space()
 
-        return self.observation(self.env._board), reward, done, info
+        return self.observation(self.env._board),  reward / reward_factor, done, info
 
