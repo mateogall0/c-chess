@@ -82,6 +82,13 @@ class ChessWrapper(gym.ObservationWrapper):
         if board.has_queenside_castling_rights(chess.BLACK):
             board_array[:, :, 16] = 1
 
+        legal_moves = [move.uci() for move in board.legal_moves]
+        for move in legal_moves:
+            move_start_square = chess.parse_square(move[:2])
+            move_end_square = chess.parse_square(move[2:4])
+            board_array[chess.square_rank(move_start_square), chess.square_file(move_start_square), 17] = 1
+            board_array[chess.square_rank(move_end_square), chess.square_file(move_end_square), 17] = 1
+
         return board_array
     
     @classmethod
