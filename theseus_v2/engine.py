@@ -81,7 +81,7 @@ class Engine:
         """
         envs = []
         syzygy_env = lambda: self.make_env('syzygy', None)
-        training_env = [lambda: self.make_env(ENV_ID, Evaluator())]
+        training_env = lambda: self.make_env(ENV_ID, Evaluator())
         if SYZYGY_ONLY:
             envs.append(syzygy_env)
         elif NO_SYZYGY:
