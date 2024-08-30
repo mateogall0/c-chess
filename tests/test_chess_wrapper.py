@@ -31,5 +31,6 @@ class TestChessWrapper(TestCase):
         arr = ChessWrapper.board_to_array(board)
         moves = ChessWrapper.array_to_board(arr)[1]
         _, index_to_move = ChessWrapper._create_action_space(board)
+        self.assertEqual(len(index_to_move), len(moves))
         for i, m in enumerate(moves):
             self.assertEqual(m, index_to_move[i])

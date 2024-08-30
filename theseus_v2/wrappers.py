@@ -14,13 +14,11 @@ class ChessWrapper(gym.ObservationWrapper):
     Chess environment wrapper.
     """
 
-    def __init__(self, env, evaluator, max_retries=16) -> None:
+    def __init__(self, env, evaluator) -> None:
         super(ChessWrapper, self).__init__(env)
         self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.int8)
         self.evaluator = evaluator
         self.update_action_space()
-        self.__max_retries = max_retries
-        self.__current_retry = 0
 
     def update_action_space(self, restart=False) -> None:
         """
@@ -164,7 +162,7 @@ class ChessWrapper(gym.ObservationWrapper):
             indices.append(move_to_index[v])
         k_array = np.array(keys)
         indices_array = np.array(indices)
-        structured_array = np.stack((k_array, indices_array), axis=1)
+        structured_array = np.stack((k_array, indices_array), axis=1).T
         return structured_array
 
 
@@ -199,6 +197,7 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         if not chose_ilegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
+        """
         if reward < -0.75 and self.__current_retry < self.__max_retries:
             self.__current_retry += 1
             self.env._board = board_before
@@ -206,6 +205,7 @@ class ChessWrapper(gym.ObservationWrapper):
             if self.__current_retry >= self.__max_retries:
                 done = True
             self.__current_retry = 0
+        """
         if DEBUG:
             print('(debug)', move_uci, reward, done, info)
         if info is None:
