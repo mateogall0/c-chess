@@ -31,7 +31,8 @@ class ChessWrapper(gym.ObservationWrapper):
         self.move_to_index, self.index_to_move = self._create_action_space(self.env._board)
         self.action_space = spaces.Discrete(len(self.move_to_index))
 
-    def _create_action_space(self, board: chess.Board) -> Tuple[dict, dict]:
+    @classmethod
+    def _create_action_space(cls, board: chess.Board) -> Tuple[dict, dict]:
         move_to_index = {}
         index_to_move = {}
         index = 0
