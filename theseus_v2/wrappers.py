@@ -164,7 +164,7 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         if not chose_ilegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
-        if reward < 0.0 and self.__current_retry < self.__max_retries:
+        if reward < 1.0 and self.__current_retry < self.__max_retries:
             self.__current_retry += 1
             self.env._board = board_before
         else:
