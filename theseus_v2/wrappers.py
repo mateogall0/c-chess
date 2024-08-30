@@ -25,7 +25,7 @@ class ChessWrapper(gym.ObservationWrapper):
         Update the action space based on current board legal moves.
         """
         if self.env._board == None or restart:
-            self.env._board = chess.Board()
+            self.env.reset()
         self.move_to_index, self.index_to_move = self._create_action_space(self.env._board)
         self.action_space = spaces.Discrete(len(self.move_to_index))
 
@@ -167,47 +167,70 @@ class ChessWrapper(gym.ObservationWrapper):
 
     def step(self, action: np.int64, playing=False) -> Tuple[np.ndarray, float, bool, dict]:
         """
-        Executes an step on current game state.
+        Executes a step in the current game state.
 
         Args:
             action (np.int64): Action to be executed.
+            playing (bool): If True, the game is in playing mode (as opposed to training).
 
         Returns:
             np.ndarray: Observation.
-            float: Reward for current action.
-            bool: True if game is finished.
+            float: Reward for the current action.
+            bool: True if the game is finished.
             dict: Info dictionary.
         """
+        # Start by printing debug information
+        if DEBUG: print('(debug) action:', action)
+
+        # Extract legal moves from the current board state
         _, legal_moves = self.array_to_board(self.arr)
-        chose_ilegal = False
+        
+        chose_illegal = False
+        info = {}
+
         try:
             move_uci = legal_moves[int(action)]
         except IndexError:
             move_uci = random.choice(legal_moves)
-            chose_ilegal = True
-            info = {'random_move': True}
+            chose_illegal = True
+            info['random_move'] = True
+        
         if DEBUG:
-            print(f'(debug) legal moves: {legal_moves}', )
+            print(f'(debug) legal moves: {legal_moves}')
             print(f'(debug)\n{self.env._board}')
-            print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_to_index: {self.move_to_index} - move_uci : {move_uci}')
+            print(f'(debug) action: {action} - move_uci: {move_uci}')
+        
         board_before = self.env._board.copy()
+        
         move = chess.Move.from_uci(move_uci)
+        
         obs, reward, done, info = self.env.step(move)
+        
         board_after = self.env._board.copy()
-        if not chose_ilegal and self.evaluator:
+        
+        if not chose_illegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
+        
+        # Log the move and reward
         if DEBUG:
-            print('(debug)', move_uci, reward, done, info)
-        if info is None:
-            info = {}
+            print('(debug) move_uci:', move_uci)
+            print('(debug) reward:', reward)
+            print('(debug) done:', done)
+            print('(debug) info:', info)
+        
         if done and not playing:
             self.update_action_space(restart=True)
         else:
             self.update_action_space()
 
-        if chose_ilegal: reward = -10.0 / reward_factor
+        if chose_illegal:
+            reward = -10.0 / reward_factor
+
+        if info is None:
+            info = {}
 
         return self.observation(obs), reward, done, info
+
 
     def render(self, mode='unicode') -> None:
         """
