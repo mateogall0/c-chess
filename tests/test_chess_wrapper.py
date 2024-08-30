@@ -34,3 +34,11 @@ class TestChessWrapper(TestCase):
         self.assertEqual(len(index_to_move), len(moves))
         for i, m in enumerate(moves):
             self.assertEqual(m, index_to_move[i])
+
+    def test_create_action_space(self):
+        fen = 'rnbqk2r/ppp2ppp/4pn2/3p4/1bPP4/2N5/PP1BPPPP/R2QKBNR w KQkq - 0 1'
+        board = chess.Board(fen=fen)
+        move_to_index, index_to_move = ChessWrapper._create_action_space(board)
+        self.assertEqual(len(move_to_index), len(index_to_move))
+        for k, v in move_to_index.items():
+            self.assertEqual(k, index_to_move[v])

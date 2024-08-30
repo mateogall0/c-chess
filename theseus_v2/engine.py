@@ -6,7 +6,6 @@ from gym import Env
 from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
-from theseus_v2.policy import CustomMlpPolicy
 
 
 class Engine:

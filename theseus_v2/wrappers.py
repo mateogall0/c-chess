@@ -41,7 +41,8 @@ class ChessWrapper(gym.ObservationWrapper):
         return move_to_index, index_to_move
 
     def observation(self, obs) -> np.ndarray:
-        return self.board_to_array(obs)
+        self.arr = self.board_to_array(obs)
+        return self.arr
 
     @classmethod
     def board_to_array(cls, board: chess.Board) -> np.ndarray:
@@ -87,11 +88,10 @@ class ChessWrapper(gym.ObservationWrapper):
         possible_moves_layer = np.zeros((8, 8), dtype=np.float32)
         for move in board.legal_moves:
             from_square = move.from_square
-            to_square = move.to_square
             from_row = chess.square_rank(from_square)
             from_col = chess.square_file(from_square)
             possible_moves_layer[from_row, from_col] = 1
-
+        
         board_array[:, :, 17] = possible_moves_layer
 
         return board_array
@@ -150,7 +150,6 @@ class ChessWrapper(gym.ObservationWrapper):
                         for move in board.legal_moves:
                             if move.from_square == from_square:
                                 possible_moves.append(move.uci())
-
         return board, possible_moves
 
     @classmethod
@@ -172,18 +171,18 @@ class ChessWrapper(gym.ObservationWrapper):
 
         Args:
             action (np.int64): Action to be executed.
-        
+
         Returns:
-            np.ndarray: Observation
+            np.ndarray: Observation.
             float: Reward for current action.
             bool: True if game is finished.
             dict: Info dictionary.
         """
-        legal_moves = [str(move) for move in self.env._board.legal_moves]
+        _, legal_moves = self.array_to_board(self.arr)
         chose_ilegal = False
         try:
-            move_uci = self.index_to_move[int(action)]
-        except KeyError:
+            move_uci = legal_moves[int(action)]
+        except IndexError:
             move_uci = random.choice(legal_moves)
             chose_ilegal = True
             info = {'random_move': True}
@@ -197,15 +196,6 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         if not chose_ilegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
-        """
-        if reward < -0.75 and self.__current_retry < self.__max_retries:
-            self.__current_retry += 1
-            self.env._board = board_before
-        else:
-            if self.__current_retry >= self.__max_retries:
-                done = True
-            self.__current_retry = 0
-        """
         if DEBUG:
             print('(debug)', move_uci, reward, done, info)
         if info is None:
@@ -217,7 +207,7 @@ class ChessWrapper(gym.ObservationWrapper):
 
         if chose_ilegal: reward = -10.0 / reward_factor
 
-        return self.observation(self.env._board), reward, done, info
+        return self.observation(obs), reward, done, info
 
     def render(self, mode='unicode') -> None:
         """
