@@ -84,6 +84,16 @@ class ChessWrapper(gym.ObservationWrapper):
             board_array[:, :, 15] = 1
         if board.has_queenside_castling_rights(chess.BLACK):
             board_array[:, :, 16] = 1
+        
+        possible_moves_layer = np.zeros((8, 8), dtype=np.float32)
+        for move in board.legal_moves:
+            from_square = move.from_square
+            to_square = move.to_square
+            from_row = chess.square_rank(from_square)
+            from_col = chess.square_file(from_square)
+            possible_moves_layer[from_row, from_col] = 1
+
+        board_array[:, :, 17] = possible_moves_layer
 
         return board_array
     
@@ -130,8 +140,32 @@ class ChessWrapper(gym.ObservationWrapper):
             board.castling_rights |= chess.BB_H8
         if board_array[0, 0, 16] == 1:
             board.castling_rights |= chess.BB_A8
+        
+        possible_moves = []
+        for row in range(8):
+            for col in range(8):
+                if board_array[row, col, 17] == 1:
+                    from_square = chess.square(col, row)
+                    piece = board.piece_at(from_square)
+                    if piece:
+                        for move in board.legal_moves:
+                            if move.from_square == from_square:
+                                possible_moves.append(move.uci())
 
-        return board
+        return board, possible_moves
+
+    @classmethod
+    def legal_moves_to_array(cls, moves: dict, move_to_index: dict) -> np.ndarray:
+        keys = []
+        indices = []
+        for k, v in moves.items():
+            keys.append(k)
+            indices.append(move_to_index[v])
+        k_array = np.array(keys)
+        indices_array = np.array(indices)
+        structured_array = np.stack((k_array, indices_array), axis=1)
+        return structured_array
+
 
     def step(self, action: np.int64, playing=False) -> Tuple[np.ndarray, float, bool, dict]:
         """
@@ -157,14 +191,14 @@ class ChessWrapper(gym.ObservationWrapper):
         if DEBUG:
             print(f'(debug) legal moves: {legal_moves}', )
             print(f'(debug)\n{self.env._board}')
-            print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_uci : {move_uci}')
+            print(f'(debug) action: {action} - index_to_move: {self.index_to_move} - move_to_index: {self.move_to_index} - move_uci : {move_uci}')
         board_before = self.env._board.copy()
         move = chess.Move.from_uci(move_uci)
         obs, reward, done, info = self.env.step(move)
         board_after = self.env._board.copy()
         if not chose_ilegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
-        if reward < 1.0 and self.__current_retry < self.__max_retries:
+        if reward < -0.75 and self.__current_retry < self.__max_retries:
             self.__current_retry += 1
             self.env._board = board_before
         else:
