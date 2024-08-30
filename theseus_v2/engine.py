@@ -5,7 +5,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
 from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper
 from theseus_v2.evaluate import Evaluator
-from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY
+from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomMlpPolicy
 
 
@@ -29,7 +29,7 @@ class Engine:
         Returns:
             PPO: Created PPO model.
         """
-        return PPO(CustomMlpPolicy,
+        return PPO('MlpPolicy',
             vec_env,
             verbose=1,
             learning_rate=0.00001,
@@ -81,11 +81,12 @@ class Engine:
         """
         envs = []
         syzygy_env = lambda: self.make_env('syzygy', None)
-        training_env = lambda: self.make_env(ENV_ID, Evaluator())
+        training_env = [lambda: self.make_env(ENV_ID, Evaluator())]
         if SYZYGY_ONLY:
             envs.append(syzygy_env)
         elif NO_SYZYGY:
-            envs.append(training_env)
+            for _ in range(NUM_ENVS):
+                envs.append(training_env)
         else:
             envs = [training_env, syzygy_env]
         vec_env = DummyVecEnv(envs)

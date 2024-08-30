@@ -13,14 +13,14 @@ class ChessWrapper(gym.ObservationWrapper):
     """
     Chess environment wrapper.
     """
-    __max_retries = 16
-    __current_retry = 0
 
-    def __init__(self, env, evaluator) -> None:
+    def __init__(self, env, evaluator, max_retries=16) -> None:
         super(ChessWrapper, self).__init__(env)
         self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.int8)
         self.evaluator = evaluator
         self.update_action_space()
+        self.__max_retries = max_retries
+        self.__current_retry = 0
 
     def update_action_space(self, restart=False) -> None:
         """
@@ -164,11 +164,12 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         if not chose_ilegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
-        if reward < -2.5 and self.__current_retry < self.__max_retries:
+        if reward < 0.0 and self.__current_retry < self.__max_retries:
             self.__current_retry += 1
-            reward *= 1.25
             self.env._board = board_before
         else:
+            if self.__current_retry >= self.__max_retries:
+                done = True
             self.__current_retry = 0
         if DEBUG:
             print('(debug)', move_uci, reward, done, info)
@@ -179,7 +180,7 @@ class ChessWrapper(gym.ObservationWrapper):
         else:
             self.update_action_space()
 
-        if chose_ilegal: reward = -100.0 / reward_factor
+        if chose_ilegal: reward = -10.0 / reward_factor
 
         return self.observation(self.env._board), reward, done, info
 
@@ -240,7 +241,7 @@ class SyzygyWrapper(ChessWrapper):
             done = False
             info = {'illegal_move': True}
         if move_uci == self.positions_expected[self.current_position_index][1]:
-            reward = 10.0
+            reward = 10.0 / reward_factor
         self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
         self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
         if chose_ilegal: reward = -10.0 / reward_factor
