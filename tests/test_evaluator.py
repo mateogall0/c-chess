@@ -13,7 +13,7 @@ class TestEvaluator(TestCase):
         board_before = chess.Board(fen=fen_before)
         board_after = chess.Board(fen=fen_after)
         reward = ev.get_external_reward(ev.external['stockfish'], board_before, board_after)
-        self.assertEqual(reward, 3.51)
+        self.assertEqual(reward, 3.51 / config.reward_factor)
 
     def test_external_stockfish_d15_positive(self):
         config.EXTERNAL_EVALUATION_DEPTH_LIMIT=15
@@ -23,7 +23,7 @@ class TestEvaluator(TestCase):
         board_before = chess.Board(fen=fen_before)
         board_after = chess.Board(fen=fen_after)
         reward = ev.get_external_reward(ev.external['stockfish'], board_before, board_after)
-        self.assertEqual(reward, 3.51)
+        self.assertEqual(reward, 3.51 / config.reward_factor)
 
     def test_external_stockfish_d1_positive(self):
         config.EXTERNAL_EVALUATION_DEPTH_LIMIT=1
@@ -33,7 +33,7 @@ class TestEvaluator(TestCase):
         board_before = chess.Board(fen=fen_before)
         board_after = chess.Board(fen=fen_after)
         reward = ev.get_external_reward(ev.external['stockfish'], board_before, board_after)
-        self.assertEqual(reward, 3.51)
+        self.assertEqual(reward, 3.51 / config.reward_factor)
 
     def test_external_stockfish_d20_negative(self):
         config.EXTERNAL_EVALUATION_DEPTH_LIMIT=20
@@ -43,4 +43,4 @@ class TestEvaluator(TestCase):
         board_before = chess.Board(fen=fen_before)
         board_after = chess.Board(fen=fen_after)
         reward = ev.get_external_reward(ev.external['stockfish'], board_before, board_after)
-        self.assertEqual(reward, -5.33)
+        self.assertEqual(reward, -5.33 / config.reward_factor)
