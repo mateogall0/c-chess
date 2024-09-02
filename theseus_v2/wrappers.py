@@ -323,11 +323,12 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         board_after.push(move_uci)
 
         obs, reward, done, info = self.env.step(move)
-        reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
+        if self.evaluator is not None:
+            reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
         reward -= abs(move_distance)
         if info is None: info = {}
         if DEBUG:
-            print(f'(debug) obs: {obs} - reward: {reward} - done: {done} - info: {info}')
+            print(f'(debug) obs: {obs} - reward: {reward} - done: {done} - info: {info} - board: \n{board_after}')
         return obs, reward / reward_factor, done, info
 
     def observation(self, obs):
@@ -339,3 +340,16 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 
     def reset(self):
         return self.env.reset()
+    
+    def get_pgn(self) -> str:
+        """
+        Get an exportable Chess game string.
+
+        Returns:
+            str: PGN string containing a whole exportable game of Chess.
+        """
+        board = self.board
+        game = chess.pgn.Game.from_board(board)
+        exporter = chess.pgn.StringExporter()
+        pgn = game.accept(exporter)
+        return pgn
