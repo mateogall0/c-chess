@@ -109,7 +109,7 @@ class Engine:
 
         while not done:
             action, _ = model.predict(obs)
-            obs, reward, done, _ = env.step(action, playing=True)
+            obs, reward, done, _ = env.step(action)
             episode_reward += reward
             if render: env.render()
 

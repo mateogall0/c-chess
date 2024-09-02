@@ -308,14 +308,13 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 
     @classmethod
     def find_closest_move(cls, moves, move):
-
         closest_move = min(moves, key=lambda num: abs(num - move))
         distance = abs(closest_move - move)
         if DEBUG:
             print(f'(debug) moves: {moves} - move: {move} - closest: {closest_move} - distance: {distance}')
         return closest_move, distance
 
-    def step(self, action, playing=False):
+    def step(self, action):
         move, move_distance = self.find_closest_move(self.env.legal_actions, action)
         board_before = self.board.copy()
         board_after = board_before.copy()

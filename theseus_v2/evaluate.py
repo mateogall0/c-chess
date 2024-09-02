@@ -23,9 +23,7 @@ class Evaluator:
     def evaluate_position(self, done: bool, board_before: chess.Board,
                           board_after: chess.Board, env, move_done: chess.Move) -> float:
         reward = 0.0
-        if done:
-            pass
-        else:
+        if not done:
             """
             # Evaluate from both perspectives
             player_reward = self.evaluate_for_side(board_after, not board_after.turn)
