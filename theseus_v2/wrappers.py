@@ -316,6 +316,7 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 
     def step(self, action):
         move, move_distance = self.find_closest_move(self.env.legal_actions, action)
+        #print(action, move, move_distance)
         board_before = self.board.copy()
         board_after = board_before.copy()
         move_uci = self.env.decode(move)
@@ -324,11 +325,12 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         obs, reward, done, info = self.env.step(move)
         if self.evaluator is not None:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
-        reward -= abs(move_distance)
         if info is None: info = {}
         if DEBUG:
             print(f'(debug) obs: {obs} - reward: {reward} - done: {done} - info: {info} - board: \n{board_after}')
-        return obs, reward / reward_factor, done, info
+        reward /= reward_factor
+        #print(reward)
+        return obs, reward, done, info
 
     def observation(self, obs):
         return self.env.observation(obs)
