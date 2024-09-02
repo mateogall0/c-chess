@@ -6,7 +6,7 @@ import chess, gym, random
 import chess.pgn
 from typing import Tuple
 from theseus_v2.config import DEBUG, input_shape, reward_factor
-
+from gym_chess.alphazero import BoardEncoding
 
 
 class ChessWrapper(gym.ObservationWrapper):
@@ -16,7 +16,7 @@ class ChessWrapper(gym.ObservationWrapper):
 
     def __init__(self, env, evaluator) -> None:
         super(ChessWrapper, self).__init__(env)
-        self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.int8)
+        self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.float32)
         self.evaluator = evaluator
         self.update_action_space()
 
@@ -179,10 +179,8 @@ class ChessWrapper(gym.ObservationWrapper):
             bool: True if the game is finished.
             dict: Info dictionary.
         """
-        # Start by printing debug information
         if DEBUG: print('(debug) action:', action)
 
-        # Extract legal moves from the current board state
         _, legal_moves = self.array_to_board(self.arr)
         
         chose_illegal = False
@@ -211,16 +209,13 @@ class ChessWrapper(gym.ObservationWrapper):
         if not chose_illegal and self.evaluator:
             reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
         
-        # Log the move and reward
         if DEBUG:
             print('(debug) move_uci:', move_uci)
             print('(debug) reward:', reward)
             print('(debug) done:', done)
             print('(debug) info:', info)
         
-        if done and not playing:
-            self.update_action_space(restart=True)
-        else:
+        if not done:
             self.update_action_space()
 
         if chose_illegal:
@@ -231,6 +226,11 @@ class ChessWrapper(gym.ObservationWrapper):
 
         return self.observation(obs), reward, done, info
 
+
+    def reset(self):
+        obs = self.env.reset()
+        self.update_action_space(restart=True)
+        return self.observation(obs)
 
     def render(self, mode='unicode') -> None:
         """
@@ -301,3 +301,41 @@ class SyzygyWrapper(ChessWrapper):
 
         return self.observation(self.env._board),  reward, done, info
 
+class AlphaZeroChessWrapper(gym.Wrapper):
+    def __init__(self, env, evaluator):
+        super(AlphaZeroChessWrapper, self).__init__(env)
+        self.evaluator = evaluator
+
+    @classmethod
+    def find_closest_move(cls, moves, move):
+
+        closest_move = min(moves, key=lambda num: abs(num - move))
+        distance = abs(closest_move - move)
+        if DEBUG:
+            print(f'(debug) moves: {moves} - move: {move} - closest: {closest_move} - distance: {distance}')
+        return closest_move, distance
+
+    def step(self, action, playing=False):
+        move, move_distance = self.find_closest_move(self.env.legal_actions, action)
+        board_before = self.board.copy()
+        board_after = board_before.copy()
+        move_uci = self.env.decode(move)
+        board_after.push(move_uci)
+
+        obs, reward, done, info = self.env.step(move)
+        reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
+        reward -= abs(move_distance)
+        if info is None: info = {}
+        if DEBUG:
+            print(f'(debug) obs: {obs} - reward: {reward} - done: {done} - info: {info}')
+        return obs, reward / reward_factor, done, info
+
+    def observation(self, obs):
+        return self.env.observation(obs)
+
+    @property
+    def board(self):
+        return self.env.get_board()
+
+    def reset(self):
+        return self.env.reset()

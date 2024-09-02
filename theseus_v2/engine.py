@@ -3,7 +3,7 @@ import gym, gym_chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
-from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper
+from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper, AlphaZeroChessWrapper
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomMlpPolicy
@@ -29,11 +29,10 @@ class Engine:
         Returns:
             PPO: Created PPO model.
         """
-        return PPO(CustomMlpPolicy,
+        return PPO('MlpPolicy',
             vec_env,
             verbose=1,
-            learning_rate=0.25,
-            n_steps=4096,
+            n_steps=8192,
             batch_size=128,
             n_epochs=4,
             gamma=0.99,
@@ -69,7 +68,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, evaluator)
         else:
-            env = ChessWrapper(env, evaluator)
+            env = AlphaZeroChessWrapper(env, evaluator)
         return env
 
     def train(self, total_timesteps=150000) -> None:
