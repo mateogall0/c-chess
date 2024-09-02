@@ -33,7 +33,7 @@ class Engine:
             vec_env,
             verbose=1,
             n_steps=4096,
-            batch_size=128,
+            batch_size=64,
             n_epochs=4,
             gamma=0.99,
             gae_lambda=0.95,

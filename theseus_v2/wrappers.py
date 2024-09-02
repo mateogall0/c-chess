@@ -302,9 +302,12 @@ class SyzygyWrapper(ChessWrapper):
         return self.observation(self.env._board),  reward, done, info
 
 class AlphaZeroChessWrapper(gym.Wrapper):
-    def __init__(self, env, evaluator):
+    def __init__(self, env, evaluator, initial_positions_path='data/initial_positions.json'):
         super(AlphaZeroChessWrapper, self).__init__(env)
         self.evaluator = evaluator
+        with open(initial_positions_path, 'r') as f:
+            self.initial_positions = json.load(f)
+        self.current_position_index = 0
 
     @classmethod
     def find_closest_move(cls, moves, move):
@@ -315,7 +318,7 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         return closest_move, distance
 
     def step(self, action):
-        move, move_distance = self.find_closest_move(self.env.legal_actions, action)
+        move, _ = self.find_closest_move(self.env.legal_actions, action)
         #print(action, move, move_distance)
         board_before = self.board.copy()
         board_after = board_before.copy()
@@ -340,7 +343,11 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         return self.env.get_board()
 
     def reset(self):
-        return self.env.reset()
+        self.env.reset()
+        random_position = random.choice(list(self.initial_positions.keys()))
+        self.board.set_fen(random_position)
+        self.current_position_index += 1
+        return self.observation(self.board.copy())
     
     def get_pgn(self) -> str:
         """
