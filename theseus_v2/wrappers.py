@@ -314,11 +314,12 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         closest_move = min(moves, key=lambda num: abs(num - move))
         distance = abs(closest_move - move)
         if DEBUG:
-            print(f'(debug) moves: {moves} - move: {move} - closest: {closest_move} - distance: {distance}')
+            pass
+            #print(f'(debug) moves: {moves} - move: {move} - closest: {closest_move} - distance: {distance}')
         return closest_move, distance
 
     def step(self, action):
-        move, _ = self.find_closest_move(self.env.legal_actions, action)
+        move, distance = self.find_closest_move(self.env.legal_actions, action)
         #print(action, move, move_distance)
         board_before = self.board.copy()
         board_after = board_before.copy()
@@ -327,12 +328,19 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 
         obs, reward, done, info = self.env.step(move)
         if self.evaluator is not None:
-            reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
+            evaluation_reward = self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
+            if evaluation_reward > 0: evaluation_reward *= 1.3
+            reward += evaluation_reward
         if info is None: info = {}
-        if DEBUG:
-            print(f'(debug) obs: {obs} - reward: {reward} - done: {done} - info: {info} - board: \n{board_after}')
+        distance /= 1000
+        reward -= distance
         reward /= reward_factor
-        #print(reward)
+        if DEBUG:
+            a = f'(debug) reward: {reward} - done: {done} - info: {info}'
+            print(a)
+            b = f'(debug) action: {action} - distance: {distance}'
+            print(b)
+            print('=' * max(len(a), len(b)))
         return obs, reward, done, info
 
     def observation(self, obs):

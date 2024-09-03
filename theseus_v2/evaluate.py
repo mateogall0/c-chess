@@ -148,8 +148,7 @@ class Evaluator:
         score_after = info_after['score'].relative.score()
         try:
             reward = score_before - score_after
-            if reward == 0.0: return reward
         except:
             reward = 0.0
 
-        return (reward / 100) / reward_factor
+        return reward / 100
