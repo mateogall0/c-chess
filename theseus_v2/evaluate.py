@@ -6,7 +6,14 @@ import asyncio
 
 
 class Evaluator:
-
+    piece_values = {
+        chess.PAWN: 1,
+        chess.KNIGHT: 3,
+        chess.BISHOP: 3,
+        chess.ROOK: 5,
+        chess.QUEEN: 9,
+        chess.KING: 11 #theoretical value of king
+    }
     external_paths = {
         'stockfish': 'bin/stockfish'
     }
@@ -24,24 +31,30 @@ class Evaluator:
                           board_after: chess.Board, env, move_done: chess.Move) -> float:
         reward = 0.0
         if not done:
-            """
-            # Evaluate from both perspectives
-            player_reward = self.evaluate_for_side(board_after, not board_after.turn)
-            opponent_reward = self.evaluate_for_side(board_after, board_after.turn)
-            
-            # Reward for capturing a piece
-            if len(board_before.piece_map()) > len(board_after.piece_map()):
-                player_reward += 0.2  # Reward for capturing a piece
-                
-            # Combine player and opponent evaluations
-            reward += player_reward - opponent_reward
+            reward += self.evaluate_capture(board_before,board_after)
             """
             loop = asyncio.get_event_loop()
             reward += loop.run_until_complete(
                 self.external_evaluation(board_before, board_after)
             )
-
+            """
         return reward
+    
+    def evaluate_capture(self, board_before: chess.Board, board_after: chess.Board) -> float:
+        captured_pieces_value = 0.0
+
+        for square, piece in board_before.piece_map().items():
+            if square not in board_after.piece_map() and piece.piece_type != chess.KING:
+                captured_piece_value = self.get_piece_value(piece)
+                captured_pieces_value += captured_piece_value
+
+        return 0.1 * captured_pieces_value
+    
+
+    def get_piece_value(self, piece):
+        if piece:
+            return self.piece_values.get(piece.piece_type, 0)
+        return 0
 
     def evaluate_for_side(self, board: chess.Board, side: bool) -> float:
         reward = 0.0

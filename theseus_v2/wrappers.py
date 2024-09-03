@@ -307,7 +307,6 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         self.evaluator = evaluator
         with open(initial_positions_path, 'r') as f:
             self.initial_positions = json.load(f)
-        self.current_position_index = 0
         self.actions = []
 
     @classmethod
@@ -329,14 +328,10 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         board_after.push(move_uci)
 
         obs, reward, done, info = self.env.step(move)
+        if info is None: info = {}
         if self.evaluator is not None:
             evaluation_reward = self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
-            if evaluation_reward > 0: evaluation_reward *= 1.3
             reward += evaluation_reward
-        if info is None: info = {}
-        distance /= 1000
-        reward -= abs(distance)
-        reward /= reward_factor
         if DEBUG:
             a = f'(debug) reward: {reward} - done: {done} - info: {info}'
             print(a)
@@ -358,7 +353,6 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         self.env.reset()
         random_position = random.choice(list(self.initial_positions.keys()))
         self.board.set_fen(random_position)
-        self.current_position_index += 1
         return self.observation(self.board.copy())
     
     def get_pgn(self) -> str:

@@ -32,15 +32,6 @@ class Engine:
         return PPO('MlpPolicy',
             vec_env,
             verbose=1,
-            learning_rate=0.0003,
-            n_steps=2048,
-            n_epochs=10,
-            gamma=0.99,
-            gae_lambda=0.95,
-            clip_range=0.3,
-            ent_coef=0.25,
-            vf_coef=0.55,
-            max_grad_norm=0.5,
         )
 
     def get_model(self) -> PPO:
