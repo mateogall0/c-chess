@@ -308,6 +308,7 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         with open(initial_positions_path, 'r') as f:
             self.initial_positions = json.load(f)
         self.current_position_index = 0
+        self.actions = []
 
     @classmethod
     def find_closest_move(cls, moves, move):
@@ -320,6 +321,7 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 
     def step(self, action):
         move, distance = self.find_closest_move(self.env.legal_actions, action)
+        self.actions.append(action)
         #print(action, move, move_distance)
         board_before = self.board.copy()
         board_after = board_before.copy()
@@ -333,14 +335,16 @@ class AlphaZeroChessWrapper(gym.Wrapper):
             reward += evaluation_reward
         if info is None: info = {}
         distance /= 1000
-        reward -= distance
+        reward -= abs(distance)
         reward /= reward_factor
         if DEBUG:
             a = f'(debug) reward: {reward} - done: {done} - info: {info}'
             print(a)
             b = f'(debug) action: {action} - distance: {distance}'
             print(b)
-            print('=' * max(len(a), len(b)))
+            c = f'(debug) average_action: {sum(self.actions) / len(self.actions)}'
+            print(c)
+            print('=' * max(len(a), len(b), len(c)))
         return obs, reward, done, info
 
     def observation(self, obs):
