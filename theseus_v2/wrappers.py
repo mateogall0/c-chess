@@ -330,7 +330,13 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         obs, reward, done, info = self.env.step(move)
         if info is None: info = {}
         if self.evaluator is not None:
-            evaluation_reward = self.evaluator.evaluate_position(done, board_before, board_after, self.env, move_uci)
+            evaluation_reward = self.evaluator.evaluate_position(
+                done,
+                board_before,
+                board_after,
+                self.env,
+                move_uci
+            )
             reward += evaluation_reward
         if DEBUG:
             a = f'(debug) reward: {reward} - done: {done} - info: {info}'

@@ -34,6 +34,8 @@ class Engine:
             verbose=1,
             n_steps=4096,
             seed=0,
+            n_epochs=64,
+            batch_size=64,
         )
 
     def get_model(self) -> PPO:
