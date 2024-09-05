@@ -364,6 +364,8 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         self.env.reset()
 
         random_position = random.choice(list(self.initial_positions.keys()))
+        if DEBUG:
+            print(f'(debug) random position: {self.initial_positions[random_position]}')
         self.board.set_fen(random_position)
 
         return self.observation(self.board.copy())

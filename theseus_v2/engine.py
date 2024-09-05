@@ -37,9 +37,9 @@ class Engine:
             n_epochs=8,
             learning_rate=0.01,
             clip_range=0.1,
-            ent_coef=0.01,
+            ent_coef=0.1,
             vf_coef=0.1,
-            gamma=0.0
+            gamma=0.99
         )
 
     def get_model(self) -> PPO:
