@@ -38,7 +38,6 @@ class Evaluator:
                 self.external_evaluation(board_before, board_after)
             )
             """
-            if reward == 0.0: reward = -0.5
         else: reward = 1.0
         return reward
     

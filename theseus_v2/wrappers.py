@@ -309,26 +309,24 @@ class AlphaZeroChessWrapper(gym.Wrapper):
             self.initial_positions = json.load(f)
         self.actions = []
 
-    @classmethod
-    def find_closest_move(cls, moves, move):
-        closest_move = min(moves, key=lambda num: abs(num - move))
-        distance = abs(closest_move - move)
-        if DEBUG:
-            pass
-            #print(f'(debug) moves: {moves} - move: {move} - closest: {closest_move} - distance: {distance}')
-        return closest_move, distance
-
     def step(self, action):
-        move, distance = self.find_closest_move(self.env.legal_actions, action)
+        if action not in self.env.legal_actions:
+            move = self.choose_legal_action(action)
+        else:
+            move = action
+
         self.actions.append(action)
-        #print(action, move, move_distance)
+
         board_before = self.board.copy()
         board_after = board_before.copy()
+
         move_uci = self.env.decode(move)
         board_after.push(move_uci)
 
         obs, reward, done, info = self.env.step(move)
-        if info is None: info = {}
+        if info is None:
+            info = {}
+
         if self.evaluator is not None:
             evaluation_reward = self.evaluator.evaluate_position(
                 done,
@@ -339,17 +337,24 @@ class AlphaZeroChessWrapper(gym.Wrapper):
             )
             reward += evaluation_reward
         if DEBUG:
-            a = f'(debug) reward: {reward} - done: {done} - info: {info}'
-            print(a)
-            b = f'(debug) action: {action} - distance: {distance}'
-            print(b)
-            c = f'(debug) average_action: {sum(self.actions) / len(self.actions)}'
-            print(c)
-            print('=' * max(len(a), len(b), len(c)))
+            print(f'(debug) reward: {reward} - done: {done} - info: {info}')
+            print(f'(debug) action: {action} - chosen move: {move}')
+            print(f'(debug) average_action: {sum(self.actions) / len(self.actions)}')
+            print('=' * 50)
+
         return obs, reward, done, info
 
     def observation(self, obs):
         return self.env.observation(obs)
+
+    def choose_legal_action(self, action):
+        """
+        Fallback in case the provided action is not legal.
+        This method chooses the closest legal action (or a random legal action if needed).
+        """
+        legal_actions = self.env.legal_actions
+        closest_move = min(legal_actions, key=lambda num: abs(num - action))
+        return closest_move
 
     @property
     def board(self):
@@ -357,16 +362,18 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 
     def reset(self):
         self.env.reset()
+
         random_position = random.choice(list(self.initial_positions.keys()))
         self.board.set_fen(random_position)
+
         return self.observation(self.board.copy())
-    
+
     def get_pgn(self) -> str:
         """
-        Get an exportable Chess game string.
+        Get an exportable Chess game string in PGN format.
 
         Returns:
-            str: PGN string containing a whole exportable game of Chess.
+            str: PGN string containing the whole Chess game.
         """
         board = self.board
         game = chess.pgn.Game.from_board(board)
