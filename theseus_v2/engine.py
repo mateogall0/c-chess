@@ -32,12 +32,12 @@ class Engine:
         return PPO('MlpPolicy',
             vec_env,
             verbose=1,
-            n_steps=4096,
+            n_steps=2048,
             seed=0,
             n_epochs=4,
             learning_rate=0.0003,
-            clip_range=0.3,
-            ent_coef=0.05,
+            clip_range=0.2,
+            ent_coef=0.01,
             vf_coef=0.1,
             gamma=0.99
         )
