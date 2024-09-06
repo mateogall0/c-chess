@@ -34,10 +34,10 @@ class Engine:
             verbose=1,
             n_steps=4096,
             seed=0,
-            n_epochs=8,
-            learning_rate=0.01,
-            clip_range=0.1,
-            ent_coef=0.1,
+            n_epochs=4,
+            learning_rate=0.0003,
+            clip_range=0.2,
+            ent_coef=0.01,
             vf_coef=0.1,
             gamma=0.99
         )

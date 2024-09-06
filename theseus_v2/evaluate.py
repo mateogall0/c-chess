@@ -32,6 +32,7 @@ class Evaluator:
         reward = 0.0
         if not done:
             reward += self.evaluate_capture(board_before, move_done)
+            reward += self.center_control(board_after)
             """
             loop = asyncio.get_event_loop()
             reward += loop.run_until_complete(
@@ -42,6 +43,9 @@ class Evaluator:
         return reward
     
     def evaluate_capture(self, board_before: chess.Board, last_move: chess.Move) -> float:
+        """
+        Possible maximum reward: 0.9
+        """
         captured_pieces_value = 0.0
 
         captured_piece = board_before.piece_at(last_move.to_square)
@@ -51,7 +55,6 @@ class Evaluator:
             captured_pieces_value += captured_piece_value
 
         return 0.1 * captured_pieces_value if captured_pieces_value > 0 else 0.0
-    
 
     def get_piece_value(self, piece):
         if piece:
@@ -128,14 +131,27 @@ class Evaluator:
                 safety_score -= 0.2
         return safety_score
 
-    def center_control(self, board: chess.Board, side: bool) -> float:
-        control_score = 0.0
-        center_squares = [chess.square(3, 3), chess.square(3, 4), chess.square(4, 3), chess.square(4, 4)]
+    def center_control(self, board_after: chess.Board) -> float:
+        center_squares = [chess.D4, chess.D5, chess.E4, chess.E5]
+        extended_center_squares = [
+            chess.C3, chess.C4, chess.C5, chess.C6,
+            chess.F3, chess.F4, chess.F5, chess.F6
+        ]
+
+        center_control = 0.0
         for square in center_squares:
-            piece = board.piece_at(square)
-            if piece and piece.color == side:
-                control_score += 0.1
-        return control_score
+            if board_after.is_attacked_by(not board_after.turn, square):
+                center_control += 0.1
+            elif board_after.is_attacked_by(board_after.turn, square):
+                center_control -= 0.1
+
+        for square in extended_center_squares:
+            if board_after.is_attacked_by(not board_after.turn, square):
+                center_control += 0.05
+            elif board_after.is_attacked_by(board_after.turn, square):
+                center_control -= 0.05
+
+        return center_control
 
     def __del__(self):
         for k in self.external.keys():
