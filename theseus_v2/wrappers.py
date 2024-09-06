@@ -360,10 +360,13 @@ class AlphaZeroChessWrapper(gym.Wrapper):
     def board(self):
         return self.env.get_board()
 
-    def reset(self):
+    def reset(self, fen=None):
         self.env.reset()
 
-        random_position = random.choice(list(self.initial_positions.keys()))
+        if fen is None:
+            random_position = random.choice(list(self.initial_positions.keys()))
+        else:
+            random_position = fen
         if DEBUG:
             print(f'(debug) random position: {self.initial_positions[random_position]}')
         self.board.set_fen(random_position)

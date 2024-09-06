@@ -102,7 +102,7 @@ class Engine:
         """
         model = self.get_model()
         env = self.make_env(ENV_ID, evaluator=None)
-        obs = env.reset()
+        obs = env.reset(fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
         episode_reward = 0
         done = False
 
