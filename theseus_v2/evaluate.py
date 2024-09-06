@@ -31,8 +31,9 @@ class Evaluator:
                           board_after: chess.Board, env, move_done: chess.Move) -> float:
         reward = 0.0
         if not done:
-            reward += self.evaluate_capture(board_before, move_done)
-            reward += self.center_control(board_after)
+            reward += self.evaluate_pieces(board_after)
+            #reward += self.evaluate_capture(board_before, move_done)
+            #reward += self.center_control(board_after)
             """
             loop = asyncio.get_event_loop()
             reward += loop.run_until_complete(
@@ -41,6 +42,33 @@ class Evaluator:
             """
         else: reward = 1.0
         return reward
+    
+    def evaluate_pieces(self, board: chess.Board):
+        white_value = sum(
+        self.get_piece_value(board.piece_at(square))
+        for square in board.piece_map()
+            if board.piece_at(square).color == chess.WHITE and board.piece_at(square).piece_type != chess.KING
+        )
+        black_value = sum(
+            self.get_piece_value(board.piece_at(square))
+            for square in board.piece_map()
+            if board.piece_at(square).color == chess.BLACK and board.piece_at(square).piece_type != chess.KING
+        )
+        
+        if board.turn != chess.WHITE:
+            value_difference = white_value - black_value
+        else:
+            value_difference = black_value - white_value
+
+        max_difference = white_value + black_value
+        max_difference = max(max_difference, 1)
+
+        normalized_reward = value_difference / max_difference
+        normalized_reward = max(-1, min(1, normalized_reward))
+        return normalized_reward
+
+    def get_piece_value(self, piece: chess.Piece) -> float:
+        return self.piece_values.get(piece.piece_type, 0)
     
     def evaluate_capture(self, board_before: chess.Board, last_move: chess.Move) -> float:
         """

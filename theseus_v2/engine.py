@@ -36,8 +36,8 @@ class Engine:
             seed=0,
             n_epochs=4,
             learning_rate=0.0003,
-            clip_range=0.2,
-            ent_coef=0.01,
+            clip_range=0.3,
+            ent_coef=0.05,
             vf_coef=0.1,
             gamma=0.99
         )

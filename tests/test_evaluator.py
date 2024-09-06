@@ -22,3 +22,33 @@ class TestEvaluator(TestCase):
         m = chess.Move.from_uci('c2c4')
         r = ev.evaluate_capture(bf, m)
         self.assertEqual(r, 0.0)
+
+    def test_pieces_evaluation(self):
+        ev = Evaluator()
+        ba = chess.Board()
+        r = ev.evaluate_pieces(ba)
+        self.assertEqual(r, 0.0)
+        
+    def test_pieces_evaluation_negative(self):
+        ev = Evaluator()
+        ba = chess.Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPP1P/RNBQKBNR b KQkq - 0 1')
+        r = ev.evaluate_pieces(ba)
+        self.assertEqual(r, -0.012987012987012988)
+        ba = chess.Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR b KQkq - 0 1')
+        r = ev.evaluate_pieces(ba)
+        self.assertEqual(r, -0.13043478260869565)
+        ba = chess.Board('8/5q2/8/2k3K1/8/8/8/8 b - - 0 1')
+        r = ev.evaluate_pieces(ba)
+        self.assertEqual(r, -1.0)
+
+    def test_pieces_evaluation_positive(self):
+        ev = Evaluator()
+        ba = chess.Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPP1P/RNBQKBNR w KQkq - 0 1')
+        r = ev.evaluate_pieces(ba)
+        self.assertEqual(r, 0.012987012987012988)
+        ba = chess.Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w KQkq - 0 1')
+        r = ev.evaluate_pieces(ba)
+        self.assertEqual(r, 0.13043478260869565)
+        ba = chess.Board('8/5q2/8/2k3K1/8/8/8/8 w - - 0 1')
+        r = ev.evaluate_pieces(ba)
+        self.assertEqual(r, 1.0)
