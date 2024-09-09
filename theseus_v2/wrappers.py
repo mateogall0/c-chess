@@ -335,7 +335,7 @@ class AlphaZeroChessWrapper(gym.Wrapper):
                 self.env,
                 move_uci
             )
-            reward += evaluation_reward
+            reward = evaluation_reward
         if DEBUG:
             print(f'(debug) reward: {reward} - done: {done} - info: {info}')
             print(f'(debug) action: {action} - chosen move: {move}')
