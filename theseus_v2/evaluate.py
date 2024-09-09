@@ -31,16 +31,14 @@ class Evaluator:
                           board_after: chess.Board, env, move_done: chess.Move) -> float:
         reward = 0.0
         if not done:
-            reward += self.evaluate_pieces(board_after)
-            reward += self.evaluate_capture(board_before, move_done)
-            reward = reward / 2
+            #reward += self.evaluate_pieces(board_after)
+            #reward += self.evaluate_capture(board_before, move_done)
+            #reward = reward / 2
             #reward += self.center_control(board_after)
-            """
             loop = asyncio.get_event_loop()
             reward += loop.run_until_complete(
                 self.external_evaluation(board_before, board_after)
             )
-            """
         else: reward = 1.0
         return reward
     
@@ -188,19 +186,19 @@ class Evaluator:
 
     async def external_evaluation(self, board_before: chess.Board, board_after: chess.Board) -> float:
         tasks = [
-            self.get_external_reward_wrapper(engine, board_before, board_after)
+            self.get_external_reward_wrapper(engine, board_before, board_after, board_before.turn)
             for engine in self.external.values()
         ]
         external_evaluations = await asyncio.gather(*tasks)
         if DEBUG:
             print('(debug)', external_evaluations)
-        rewards = sum(external_evaluations)
+        rewards = sum(external_evaluations) / len(self.external)
         return rewards
 
-    async def get_external_reward_wrapper(self, engine, board_before, board_after) -> float:
-        return self.get_external_reward(engine, board_before, board_after)
+    async def get_external_reward_wrapper(self, *ag, **kw) -> float:
+        return self.get_external_reward(*ag, **kw)
 
-    def get_external_reward(self, engine, board_before, board_after) -> float:
+    def get_external_reward(self, engine, board_before, board_after, turn) -> float:
         info_before = engine.analyse(board_before, chess.engine.Limit(depth=EXTERNAL_EVALUATION_DEPTH_LIMIT))
         score_before = info_before['score'].relative.score()
 
@@ -208,7 +206,10 @@ class Evaluator:
         score_after = info_after['score'].relative.score()
         try:
             reward = score_before - score_after
+            if turn == chess.BLACK:
+                reward = reward * -1
         except:
             reward = 0.0
-
-        return reward / 100
+        if reward > reward_factor: print(reward)
+        reward = max(min(reward, reward_factor), -reward_factor)
+        return reward / reward_factor

@@ -34,12 +34,12 @@ class Engine:
             verbose=1,
             n_steps=4096,
             seed=0,
-            n_epochs=4,
+            n_epochs=2,
             learning_rate=0.0003,
-            clip_range=0.2,
-            ent_coef=0.01,
+            clip_range=0.3,
+            ent_coef=0.05,
             vf_coef=0.1,
-            gamma=0.99
+            gamma=0.95
         )
 
     def get_model(self) -> PPO:
