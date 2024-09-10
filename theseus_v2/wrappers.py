@@ -338,7 +338,8 @@ class AlphaZeroChessWrapper(gym.Wrapper):
             reward = evaluation_reward
         if DEBUG:
             print(f'(debug) reward: {reward} - done: {done} - info: {info}')
-            print(f'(debug) action: {action} - chosen move: {move}')
+            print(f'(debug) action: {action} - chosen move: {move} - {move_uci}')
+            print(f'(debug) before: {board_before.fen()}')
             print(f'(debug) average_action: {sum(self.actions) / len(self.actions)}')
             print('=' * 50)
 
