@@ -205,11 +205,12 @@ class Evaluator:
         info_after = engine.analyse(board_after, chess.engine.Limit(depth=EXTERNAL_EVALUATION_DEPTH_LIMIT))
         score_after = info_after['score'].relative.score()
         try:
-            reward = score_before - score_after
+            reward = score_after - score_before
             if turn == chess.BLACK:
                 reward = reward * -1
+            if len(board_before.move_stack) < 5:
+                reward *= 2.0
         except:
             reward = 0.0
-        if reward > reward_factor: print(reward)
         reward = max(min(reward, reward_factor), -reward_factor)
         return reward / reward_factor
