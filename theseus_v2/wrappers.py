@@ -207,7 +207,7 @@ class ChessWrapper(gym.ObservationWrapper):
         board_after = self.env._board.copy()
         
         if not chose_illegal and self.evaluator:
-            reward += self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
+            reward = self.evaluator.evaluate_position(done, board_before, board_after, self.env, move)
         
         if DEBUG:
             print('(debug) move_uci:', move_uci)
@@ -219,7 +219,7 @@ class ChessWrapper(gym.ObservationWrapper):
             self.update_action_space()
 
         if chose_illegal:
-            reward = -10.0 / reward_factor
+            reward = -2
 
         if info is None:
             info = {}
@@ -227,7 +227,7 @@ class ChessWrapper(gym.ObservationWrapper):
         return self.observation(obs), reward, done, info
 
 
-    def reset(self):
+    def reset(self, *ag,**kw):
         obs = self.env.reset()
         self.update_action_space(restart=True)
         return self.observation(obs)
@@ -292,7 +292,7 @@ class SyzygyWrapper(ChessWrapper):
             reward = 10.0 / reward_factor
         self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
         self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
-        if chose_ilegal: reward = -10.0 / reward_factor
+        if chose_ilegal: reward = -1
         if DEBUG:
             print('(debug) Syzygy training -', move_uci, reward, done, info)
         if info is None:

@@ -35,7 +35,7 @@ class Engine:
             n_steps=4096,
             seed=1,
             n_epochs=6,
-            learning_rate=0.001,
+            learning_rate=0.0001,
             clip_range=0.2,
             ent_coef=0.2,
             vf_coef=0.5,
@@ -68,7 +68,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, evaluator)
         else:
-            env = AlphaZeroChessWrapper(env, evaluator)
+            env = ChessWrapper(env, evaluator)
         return env
 
     def train(self, total_timesteps=150000) -> None:
