@@ -7,6 +7,7 @@ from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper, AlphaZeroChessWrapp
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomMlpPolicy
+from stable_baselines3.common.callbacks import EvalCallback
 
 
 class Engine:
@@ -32,15 +33,14 @@ class Engine:
         return PPO('MlpPolicy',
             vec_env,
             verbose=1,
-            n_steps=4096,
+            n_steps=8196,
             seed=1,
-            n_epochs=10,
-            learning_rate=0.005,
-            clip_range=0.15,
-            ent_coef=0.01,
-            vf_coef=0.5,
+            n_epochs=16,
+            learning_rate=0.00015,
+            clip_range=0.2,
+            ent_coef=0.5,
+            vf_coef=0.25,
             gamma=0.99,
-            batch_size=256
         )
 
     def get_model(self) -> PPO:

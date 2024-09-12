@@ -208,6 +208,8 @@ class Evaluator:
             reward = score_before - score_after
             if turn == chess.BLACK:
                 reward = reward * -1
+            if len(board_before.move_stack()) < 10: # larger rewards and punishments for openings
+                reward *= 2
         except:
             reward = 0.0
         reward = max(min(reward, reward_factor), -reward_factor)
