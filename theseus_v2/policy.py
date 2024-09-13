@@ -14,19 +14,3 @@ class CustomMlpPolicy(ActorCriticPolicy):
         self.fc2 = nn.Linear(512, 256)
         self.fc_pi = nn.Linear(256, self.action_space.n)
         self.fc_value = nn.Linear(256, 1)
-
-    def forward(self, obs):
-        obs = obs.float().reshape(obs.size(0), -1)
-
-        x = F.relu(self.fc1(obs))
-        x = F.relu(self.fc2(x))
-
-        pi = self.fc_pi(x)
-        value = self.fc_value(x)
-
-        action_dist = distributions.Categorical(logits=pi)
-
-        actions = action_dist.sample()
-        log_probs = action_dist.log_prob(actions)
-
-        return actions, value, log_probs

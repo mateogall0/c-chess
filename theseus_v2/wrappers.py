@@ -6,7 +6,6 @@ import chess, gym, random
 import chess.pgn
 from typing import Tuple
 from theseus_v2.config import DEBUG, input_shape, reward_factor
-from gym_chess.alphazero import BoardEncoding
 
 
 class ChessWrapper(gym.ObservationWrapper):

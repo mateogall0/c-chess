@@ -33,14 +33,10 @@ class Engine:
         return PPO('MlpPolicy',
             vec_env,
             verbose=1,
-            n_steps=8196,
             seed=1,
-            n_epochs=16,
-            learning_rate=0.00015,
-            clip_range=0.2,
-            ent_coef=0.5,
-            vf_coef=0.25,
-            gamma=0.99,
+            n_epochs=200,
+            batch_size=128,
+            learning_rate=0.0002
         )
 
     def get_model(self) -> PPO:
@@ -68,7 +64,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, evaluator)
         else:
-            env = ChessWrapper(env, evaluator)
+            env = AlphaZeroChessWrapper(env, evaluator)
         return env
 
     def train(self, total_timesteps=150000) -> None:
