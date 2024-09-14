@@ -32,13 +32,13 @@ class Evaluator:
         reward = 0.0
         if not done:
             #reward += self.evaluate_pieces(board_after)
-            #reward += self.evaluate_capture(board_before, move_done)
+            reward += self.evaluate_capture(board_before, move_done)
             #reward = reward / 2
             #reward += self.center_control(board_after)
-            loop = asyncio.get_event_loop()
+            """loop = asyncio.get_event_loop()
             reward += loop.run_until_complete(
                 self.external_evaluation(board_before, board_after)
-            )
+            )"""
         else: reward = 1.0
         return reward
     

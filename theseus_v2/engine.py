@@ -34,9 +34,13 @@ class Engine:
             vec_env,
             verbose=1,
             seed=1,
-            n_epochs=200,
+            n_epochs=300,
             batch_size=128,
-            learning_rate=0.0002
+            learning_rate=0.0001,
+            ent_coef=1.0,
+            target_kl=0.03,
+            gamma=0.0,
+            gae_lambda=0.95,
         )
 
     def get_model(self) -> PPO:
