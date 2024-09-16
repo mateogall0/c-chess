@@ -435,7 +435,7 @@ class AlphaZeroWrapper2(gym.Wrapper):
 class ChessWrapper2(ChessWrapper):
     def update_action_space(self, restart=False) -> None:
         r = super().update_action_space(restart)
-        self.action_space = spaces.Discrete(1024)
+        self.action_space = spaces.Discrete(64)
         return r
 
     def step(self, action):
