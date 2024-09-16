@@ -17,13 +17,13 @@ class ChessWrapper(gym.ObservationWrapper):
         super(ChessWrapper, self).__init__(env)
         self.observation_space = spaces.Box(low=0, high=1, shape=input_shape, dtype=np.float32)
         self.evaluator = evaluator
-        self.update_action_space()
+        self.reset()
 
     def update_action_space(self, restart=False) -> None:
         """
         Update the action space based on current board legal moves.
         """
-        if self.env._board == None or restart:
+        if self.env._board is None:
             self.env.reset()
         self.move_to_index, self.index_to_move = self._create_action_space(self.env._board)
         self.action_space = spaces.Discrete(len(self.move_to_index))
@@ -228,7 +228,7 @@ class ChessWrapper(gym.ObservationWrapper):
 
     def reset(self, *ag,**kw):
         obs = self.env.reset()
-        self.update_action_space(restart=True)
+        self.update_action_space()
         return self.observation(obs)
 
     def render(self, mode='unicode') -> None:
@@ -436,8 +436,11 @@ class AlphaZeroWrapper2(gym.Wrapper):
     
 class ChessWrapper2(ChessWrapper):
     def step(self, action):
-        _, legal_moves = self.array_to_board(self.arr)
-        move_uci = legal_moves[int(action)]
+        if DEBUG:
+            print(f'(debug) action: {action} - action_space: {self.action_space}')
+            print(f'(debug) move_to_index: {self.move_to_index} - index_to_move: {self.index_to_move}')
+            print(self.env._board)
+        move_uci = self.index_to_move[int(action)]
         move = chess.Move.from_uci(move_uci)
         obs, reward, done, info = self.env.step(move)
         if not done:
