@@ -392,6 +392,7 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 class AlphaZeroWrapper2(gym.Wrapper):
     def step(self, action):
         if action not in self.env.legal_actions:
+            print('ilegal')
             move = self.choose_legal_action(action)
         else:
             move = action
@@ -399,7 +400,9 @@ class AlphaZeroWrapper2(gym.Wrapper):
         if info == None: info = {}
         if not done:
             _, _, rdone, _ = self.env.step(random.choice(self.env.legal_actions)) # random move for black
-            if rdone: reward = -1.0
+            if rdone:
+                reward = -1.0
+                done = True
         return obs, reward, done, info
     
     def observation(self, obs):
@@ -430,3 +433,18 @@ class AlphaZeroWrapper2(gym.Wrapper):
         exporter = chess.pgn.StringExporter()
         pgn = game.accept(exporter)
         return pgn
+    
+class ChessWrapper2(ChessWrapper):
+    def step(self, action):
+        _, legal_moves = self.array_to_board(self.arr)
+        move_uci = legal_moves[int(action)]
+        move = chess.Move.from_uci(move_uci)
+        obs, reward, done, info = self.env.step(move)
+        if not done:
+            _, _, rdone, _ = self.env.step(random.choice(list(self.env._board.legal_moves)))
+            if rdone:
+                reward = -1
+                done = True
+        if info is None: info = {}
+        self.update_action_space()
+        return self.observation(obs), reward, done, info

@@ -7,10 +7,11 @@ import torch.distributions as distributions
 
 
 class CustomMlpPolicy(ActorCriticPolicy):
-    def __init__(self, observation_space, action_space, lr_schedule, net_arch=None, activation_fn=nn.ReLU, ortho_init=True, *args, **kwargs):
-        super(CustomMlpPolicy, self).__init__(observation_space, action_space, lr_schedule, net_arch, activation_fn, ortho_init, *args, **kwargs)
+    def forward(self, obs, deterministic=False):
+        latent_pi, latent_vf = self._get_latent(obs)
 
-        self.fc1 = nn.Linear(8 * 8 * 18, 512)
-        self.fc2 = nn.Linear(512, 256)
-        self.fc_pi = nn.Linear(256, self.action_space.n)
-        self.fc_value = nn.Linear(256, 1)
+        distribution = self._get_action_dist_from_latent(latent_pi)
+
+        action = distribution.get_deterministic_action() if deterministic else distribution.sample()
+
+        return action
