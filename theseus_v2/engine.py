@@ -3,7 +3,7 @@ import gym, gym_chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
-from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper, AlphaZeroChessWrapper
+from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper, AlphaZeroChessWrapper, AlphaZeroWrapper2
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomMlpPolicy
@@ -33,14 +33,15 @@ class Engine:
         return PPO('MlpPolicy',
             vec_env,
             verbose=1,
-            seed=1,
-            n_epochs=300,
-            batch_size=128,
-            learning_rate=0.0001,
-            ent_coef=1.0,
-            target_kl=0.03,
+            seed=2,
+            n_epochs=100,
+            batch_size=64,
+            learning_rate=0.0003,
+            ent_coef=0.05,
+            target_kl=0.1,
             gamma=0.0,
             gae_lambda=0.95,
+            clip_range=0.3
         )
 
     def get_model(self) -> PPO:
@@ -68,7 +69,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, evaluator)
         else:
-            env = AlphaZeroChessWrapper(env, evaluator)
+            env = AlphaZeroWrapper2(env)
         return env
 
     def train(self, total_timesteps=150000) -> None:
@@ -103,7 +104,7 @@ class Engine:
         """
         model = self.get_model()
         env = self.make_env(ENV_ID, evaluator=None)
-        obs = env.reset(fen='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+        obs = env.reset()
         episode_reward = 0
         done = False
 

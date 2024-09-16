@@ -361,8 +361,9 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         return self.env.get_board()
 
     def reset(self, fen=None):
+        return self.env.reset()
+        """
         self.env.reset()
-
         if fen is None:
             random_position = random.choice(list(self.initial_positions.keys()))
         else:
@@ -372,7 +373,51 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         self.board.set_fen(random_position)
 
         return self.observation(self.board.copy())
+        """
 
+    def get_pgn(self) -> str:
+        """
+        Get an exportable Chess game string in PGN format.
+
+        Returns:
+            str: PGN string containing the whole Chess game.
+        """
+        board = self.board
+        game = chess.pgn.Game.from_board(board)
+        exporter = chess.pgn.StringExporter()
+        pgn = game.accept(exporter)
+        return pgn
+    
+
+class AlphaZeroWrapper2(gym.Wrapper):
+    def step(self, action):
+        if action not in self.env.legal_actions:
+            move = self.choose_legal_action(action)
+        else:
+            move = action
+        obs, reward, done, info = self.env.step(move)
+        if info == None: info = {}
+        if not done:
+            _, _, rdone, _ = self.env.step(random.choice(self.env.legal_actions)) # random move for black
+            if rdone: reward = -1.0
+        return obs, reward, done, info
+    
+    def observation(self, obs):
+        return self.env.observation(obs)
+
+    @property
+    def board(self):
+        return self.env.get_board()
+    
+    def choose_legal_action(self, action):
+        """
+        Fallback in case the provided action is not legal.
+        This method chooses the closest legal action (or a random legal action if needed).
+        """
+        legal_actions = self.env.legal_actions
+        closest_move = min(legal_actions, key=lambda num: abs(num - action))
+        return closest_move
+    
     def get_pgn(self) -> str:
         """
         Get an exportable Chess game string in PGN format.

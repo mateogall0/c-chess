@@ -40,6 +40,8 @@ class Evaluator:
                 self.external_evaluation(board_before, board_after)
             )"""
         else: reward = 1.0
+        if reward == 0.0:
+            reward = -0.1
         return reward
     
     def evaluate_pieces(self, board: chess.Board):
