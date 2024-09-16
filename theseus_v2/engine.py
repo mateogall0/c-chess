@@ -6,7 +6,7 @@ from gym import Env
 from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper, AlphaZeroChessWrapper, AlphaZeroWrapper2, ChessWrapper2
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
-from theseus_v2.policy import CustomMlpPolicy
+from theseus_v2.policy import CustomPolicy
 from stable_baselines3.common.callbacks import EvalCallback
 
 
@@ -34,9 +34,10 @@ class Engine:
             vec_env,
             verbose=1,
             seed=2,
-            batch_size=32,
+            batch_size=256,
             learning_rate=0.0001,
             gamma=0.99,
+            n_steps=4096
         )
 
     def get_model(self) -> PPO:

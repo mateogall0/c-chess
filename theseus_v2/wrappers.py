@@ -435,25 +435,36 @@ class AlphaZeroWrapper2(gym.Wrapper):
 class ChessWrapper2(ChessWrapper):
     def update_action_space(self, restart=False) -> None:
         r = super().update_action_space(restart)
-        self.action_space = spaces.Discrete(64)
+        self.action_space = spaces.Discrete(128)
         return r
 
     def step(self, action):
         if DEBUG:
-            print(f'(debug) action: {action} - action_space: {self.action_space}')
-            print(f'(debug) move_to_index: {self.move_to_index} - index_to_move: {self.index_to_move}')
+            print(f'(debug) action: {action} - action_space: {self.action_space} -len(legal_actions): {len(self.index_to_move)}')
         move_uci = self.get_wrapped_index(self.index_to_move, int(action))
+        #move_uci = self.index_to_move[int(action)]
         move = chess.Move.from_uci(move_uci)
         obs, reward, done, info = self.env.step(move)
+        if info is None: info = {}
+        #action_mask = self.create_action_mask(self.index_to_move)
+        #info['action_mask'] = action_mask
         if not done:
             _, _, rdone, _ = self.env.step(random.choice(list(self.env._board.legal_moves)))
             if rdone:
-                reward = -1
+                if self.env._board.is_checkmate():
+                    reward = -1
                 done = True
-        if info is None: info = {}
         self.update_action_space()
         return self.observation(obs), reward, done, info
 
     def get_wrapped_index(self, d, index):
         wrapped_index = index % len(d)
         return d[wrapped_index]
+    
+    def create_action_mask(self, legal_actions):
+        legal_actions = list(legal_actions.keys())
+        legal_actions = np.array(legal_actions, dtype=int)
+        mask = np.zeros(self.action_space.n, dtype=np.float32)
+        mask[legal_actions] = 1
+        
+        return mask
