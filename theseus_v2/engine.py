@@ -30,7 +30,7 @@ class Engine:
         Returns:
             PPO: Created PPO model.
         """
-        return PPO('MlpPolicy',
+        return PPO(CustomPolicy,
             vec_env,
             verbose=1,
             seed=2,
