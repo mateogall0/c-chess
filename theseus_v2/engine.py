@@ -37,7 +37,8 @@ class Engine:
             batch_size=256,
             learning_rate=0.0001,
             gamma=0.99,
-            n_steps=4096
+            n_steps=4096,
+            ent_coef=0.1
         )
 
     def get_model(self) -> PPO:

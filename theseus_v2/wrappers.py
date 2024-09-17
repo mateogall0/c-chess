@@ -450,12 +450,6 @@ class ChessWrapper2(ChessWrapper):
         if info is None: info = {}
         #action_mask = self.create_action_mask(self.index_to_move)
         #info['action_mask'] = action_mask
-        if not done:
-            _, _, rdone, _ = self.env.step(random.choice(list(self.env._board.legal_moves)))
-            if rdone:
-                if self.env._board.is_checkmate():
-                    reward = -1
-                done = True
         self.update_action_space()
         return self.observation(obs), reward, done, info
 

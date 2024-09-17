@@ -12,13 +12,13 @@ class CustomPolicy(MlpPolicy):
         action_mask = self.get_action_mask(obs)
 
         action_probs = distribution.distribution.logits
-        masked_logits = action_probs + (action_mask + 1e-10).log()
-        print(masked_logits)
+        masked_logits = action_probs * (action_mask + 1e-10).log()
 
         masked_probs = torch.softmax(masked_logits, dim=1)
         if deterministic:
             actions = masked_probs.argmax(dim=1)
         else:
+            #actions = masked_probs.argmax(dim=1)
             actions = masked_probs.multinomial(num_samples=1).squeeze()
 
         log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1))).squeeze()
@@ -28,9 +28,9 @@ class CustomPolicy(MlpPolicy):
 
     def get_action_mask(self, obs):
         batch_size = len(obs)
-        masks = torch.zeros((batch_size, self.action_space.n), dtype=torch.float32)
+        masks = torch.ones((batch_size, self.action_space.n), dtype=torch.float32)
 
         for i in range(batch_size):
-            _, legal_moves = ChessWrapper2.array_to_board(obs[i])
-            masks[i, :len(legal_moves)] = 1
+            b, _ = ChessWrapper2.array_to_board(obs[i])
+            masks[i, :len(list(b.legal_moves))] = 0
         return masks
