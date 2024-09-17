@@ -433,16 +433,20 @@ class AlphaZeroWrapper2(gym.Wrapper):
         return pgn
     
 class ChessWrapper2(ChessWrapper):
+    max_moves=75
     def update_action_space(self, restart=False) -> None:
         r = super().update_action_space(restart)
-        self.action_space = spaces.Discrete(128)
+        self.action_space = spaces.Discrete(self.max_moves)
         return r
 
     def step(self, action):
         if DEBUG:
             print(f'(debug) action: {action} - action_space: {self.action_space} -len(legal_actions): {len(self.index_to_move)}')
-        move_uci = self.get_wrapped_index(self.index_to_move, int(action))
-        #move_uci = self.index_to_move[int(action)]
+        #move_uci = self.get_wrapped_index(self.index_to_move, int(action))
+        try:
+            move_uci = self.index_to_move[int(action)]
+        except KeyError:
+            return None, -0.5, True, {}
         move = chess.Move.from_uci(move_uci)
         obs, reward, done, info = self.env.step(move)
         if info is None: info = {}
