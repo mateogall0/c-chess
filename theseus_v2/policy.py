@@ -10,11 +10,10 @@ class CustomPolicy(MlpPolicy):
         distribution = self._get_action_dist_from_latent(latent_pi, latent_sde=latent_sde)
         action_mask = self.get_action_mask(obs)
         action_probs = distribution.distribution.logits
-        print(dir(action_probs))
-        masked_probs = action_probs * action_mask.unsqueeze(1)
+        masked_probs = action_probs * action_mask
         masked_probs = masked_probs / masked_probs.sum(dim=1, keepdim=True)
         actions = masked_probs.argmax(dim=1) if deterministic else masked_probs.multinomial(num_samples=1).squeeze()
-        log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1)))
+        log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1))).squeeze()
         
         return actions, values, log_prob
 
