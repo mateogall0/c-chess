@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from theseus_v2 import theseus as engine
+import random
+random.seed(1)
 
 if __name__ == '__main__':
     """
