@@ -51,7 +51,6 @@ class Engine:
             PPO: Loaded model.
         """
         model = PPO.load(self.path, env=env, policy=CustomPolicy)
-        print(model.policy)
         return model
 
     def make_env(self, env_id: str, evaluator=None) -> Env:
@@ -69,7 +68,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, evaluator)
         else:
-            env = ChessWrapper2(env, None)
+            env = ChessWrapper2(env, evaluator)
         return env
 
     def train(self, total_timesteps=150000) -> None:

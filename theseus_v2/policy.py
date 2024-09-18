@@ -19,7 +19,6 @@ class CustomPolicy(MlpPolicy):
         else:
             actions = masked_probs.multinomial(num_samples=1).squeeze()
 
-        return actions, values, masked_probs
         log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1))).squeeze()
 
         return actions, values, log_prob

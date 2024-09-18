@@ -37,6 +37,10 @@ class ChessWrapper(gym.ObservationWrapper):
             index += 1
         return move_to_index, index_to_move
 
+    @property
+    def board(self) -> chess.Board:
+        return self.env._board
+
     def observation(self, obs) -> np.ndarray:
         self.arr = self.board_to_array(obs)
         return self.arr
@@ -443,8 +447,10 @@ class ChessWrapper2(ChessWrapper):
         if DEBUG:
             print(f'(debug) action: {action} - action_space: {self.action_space} - len(legal_actions): {len(self.index_to_move)}')
         #move_uci = self.get_wrapped_index(self.index_to_move, int(action))
-        move_uci = self.index_to_move[int(action)]
-
+        try:
+            move_uci = self.index_to_move[int(action)]
+        except KeyError:
+            return None, -0.5, True, {}
         move = chess.Move.from_uci(move_uci)
         obs, reward, done, info = self.env.step(move)
         if info is None: info = {}
