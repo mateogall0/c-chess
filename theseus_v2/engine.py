@@ -65,7 +65,7 @@ class Engine:
         """
         env = gym.make(ENV_ID)
         if env_id == 'syzygy':
-            env = SyzygyWrapper(env, evaluator)
+            env = SyzygyWrapper(env, None)
         else:
             env = ChessWrapper2(env, evaluator)
         return env

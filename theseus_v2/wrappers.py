@@ -257,51 +257,6 @@ class ChessWrapper(gym.ObservationWrapper):
         return pgn
 
 
-class SyzygyWrapper(ChessWrapper):
-    def __init__(self, env, evaluator, path='data/val_data/data.json') -> None:
-        super().__init__(env, evaluator)
-        self.current_position_index = 0
-        with open(path, 'r') as file:
-            self.positions_expected = json.load(file)
-        self.update_action_space()
-    
-    def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
-        """
-        """
-        legal_moves = [str(move) for move in self.env._board.legal_moves]
-        chose_ilegal = False
-        try:
-            move_uci = self.index_to_move[int(action)]
-        except KeyError:
-            move_uci = random.choice(legal_moves)
-            chose_ilegal = True
-            info = {'random_move': True}
-        if DEBUG:
-            print(f'(debug) Syzygy training -  action: {action} - index_to_move: {self.index_to_move} - move_uci : {move_uci}')
-        move = chess.Move.from_uci(move_uci)
-        try:
-            move = chess.Move.from_uci(move_uci)
-            obs, reward, done, info = self.env.step(move)
-        except ValueError as e:
-            if DEBUG:
-                print(f'(debug) Illegal move exception: {e}')
-            obs = self.observation(self.env._board)
-            chose_ilegal = True
-            done = False
-            info = {'illegal_move': True}
-        if move_uci == self.positions_expected[self.current_position_index][1]:
-            reward = 10.0 / reward_factor
-        self.current_position_index = (self.current_position_index + 1) % len(self.positions_expected)
-        self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
-        if chose_ilegal: reward = -1
-        if DEBUG:
-            print('(debug) Syzygy training -', move_uci, reward, done, info)
-        if info is None:
-            info = {}
-        self.update_action_space()
-
-        return self.observation(self.env._board),  reward, done, info
-
 class AlphaZeroChessWrapper(gym.Wrapper):
     def __init__(self, env, evaluator, initial_positions_path='data/initial_positions.json'):
         super(AlphaZeroChessWrapper, self).__init__(env)
@@ -470,3 +425,36 @@ class ChessWrapper2(ChessWrapper):
         mask[legal_actions] = 1
         
         return mask
+
+class SyzygyWrapper(ChessWrapper2):
+    def __init__(self, env, evaluator, path='data/val_data/data.json') -> None:
+        self.current_position_index = 0
+        with open(path, 'r') as file:
+            self.positions_expected = json.load(file)
+        super().__init__(env, evaluator)
+    
+    def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
+        """
+        """
+        try:
+            move_uci = self.index_to_move[int(action)]
+        except KeyError:
+            return None, -0.5, True, {}
+        move = chess.Move.from_uci(move_uci)
+        obs, _, _, info = self.env.step(move)
+        if info is None: info = {}
+        if move_uci == self.positions_expected[self.current_position_index][1]:
+            reward = 1.0
+        else:
+            reward = -1.0
+        self.update_action_space()
+        return self.observation(obs), reward, True, info
+
+    def reset(self):
+        self.env.reset()
+        self.env._board = chess.Board(self.positions_expected[self.current_position_index][0])
+        self.update_action_space()
+        self.current_position_index += 1
+        if self.current_position_index >= len(self.positions_expected):
+            self.current_position_index = 0
+        return self.observation(self.env._board)
