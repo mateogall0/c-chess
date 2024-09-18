@@ -8,6 +8,8 @@ from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomPolicy
 from stable_baselines3.common.callbacks import EvalCallback
+import torch
+import numpy as np
 
 
 class Engine:
@@ -41,14 +43,15 @@ class Engine:
             ent_coef=0.1
         )
 
-    def get_model(self) -> PPO:
+    def get_model(self, env=None) -> PPO:
         """
         Loads PPO model.
 
         Returns:
             PPO: Loaded model.
         """
-        model = PPO.load(self.path)
+        model = PPO.load(self.path, env=env, policy=CustomPolicy)
+        print(model.policy)
         return model
 
     def make_env(self, env_id: str, evaluator=None) -> Env:
@@ -99,14 +102,14 @@ class Engine:
         Returns:
             int: Total rewards.
         """
-        model = self.get_model()
         env = self.make_env(ENV_ID, evaluator=None)
+        model = self.get_model(env)
         obs = env.reset()
         episode_reward = 0
         done = False
 
         while not done:
-            action, _ = model.predict(obs)
+            action, _ = model.predict(torch.tensor([obs]))
             obs, reward, done, _ = env.step(action)
             episode_reward += reward
             if render: env.render()

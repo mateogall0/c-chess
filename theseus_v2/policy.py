@@ -10,7 +10,6 @@ class CustomPolicy(MlpPolicy):
 
         distribution = self._get_action_dist_from_latent(latent_pi, latent_sde=latent_sde)
         action_mask = self.get_action_mask(obs)
-
         action_probs = distribution.distribution.logits
         masked_logits = action_probs * (action_mask + 1e-10).log()
 
@@ -18,9 +17,9 @@ class CustomPolicy(MlpPolicy):
         if deterministic:
             actions = masked_probs.argmax(dim=1)
         else:
-            #actions = masked_probs.argmax(dim=1)
             actions = masked_probs.multinomial(num_samples=1).squeeze()
 
+        return actions, values, masked_probs
         log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1))).squeeze()
 
         return actions, values, log_prob
@@ -34,3 +33,7 @@ class CustomPolicy(MlpPolicy):
             b, _ = ChessWrapper2.array_to_board(obs[i])
             masks[i, :len(list(b.legal_moves))] = 0
         return masks
+
+    def predict(self, obs, a, b, deterministic=False):
+        actions, _, _ = self.forward(obs, deterministic)
+        return actions, _

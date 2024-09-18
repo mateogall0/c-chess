@@ -219,3 +219,7 @@ class Evaluator:
             reward = 0.0
         reward = max(min(reward, reward_factor), -reward_factor)
         return reward / reward_factor
+
+    def simple_evaluation(self, done: bool, board: chess.Board) -> float:
+        if done: return 1.0
+        return 0.0
