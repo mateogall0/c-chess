@@ -454,7 +454,8 @@ class ChessWrapper2(ChessWrapper):
         move = chess.Move.from_uci(move_uci)
         obs, reward, done, info = self.env.step(move)
         if info is None: info = {}
-        reward = self.evaluator.simple_evaluation(done, self.board)
+        if self.evaluator:
+            reward = self.evaluator.simple_evaluation(done, self.board)
         self.update_action_space()
         return self.observation(obs), reward, done, info
 

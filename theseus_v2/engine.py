@@ -36,11 +36,10 @@ class Engine:
             vec_env,
             verbose=1,
             seed=2,
-            batch_size=256,
+            batch_size=128,
             learning_rate=0.0001,
             gamma=0.99,
             n_steps=4096,
-            ent_coef=0.1
         )
 
     def get_model(self, env=None) -> PPO:
@@ -108,7 +107,7 @@ class Engine:
         done = False
 
         while not done:
-            action, _ = model.predict(torch.tensor([obs]))
+            action, _ = model.predict(torch.tensor([obs]), deterministic=True)
             obs, reward, done, _ = env.step(action)
             episode_reward += reward
             if render: env.render()
