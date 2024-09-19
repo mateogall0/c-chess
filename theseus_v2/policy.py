@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import torch
 from stable_baselines3.ppo import MlpPolicy
-from theseus_v2.wrappers import ChessWrapper2
+from theseus_v2.wrappers import ChessWrapper2, AlphaZeroWrapper2
 
 class CustomPolicy(MlpPolicy):
     def forward(self, obs: torch.Tensor, deterministic: bool = False) -> tuple:
@@ -11,7 +11,7 @@ class CustomPolicy(MlpPolicy):
         distribution = self._get_action_dist_from_latent(latent_pi, latent_sde=latent_sde)
         action_mask = self.get_action_mask(obs)
         action_probs = distribution.distribution.logits
-        masked_logits = action_probs * (action_mask + 1e-10).log()
+        masked_logits = action_probs * (action_mask + 1e-45).log()
 
         masked_probs = torch.softmax(masked_logits, dim=1)
         if deterministic:
@@ -25,6 +25,7 @@ class CustomPolicy(MlpPolicy):
 
 
     def get_action_mask(self, obs):
+        print(obs.shape)
         batch_size = len(obs)
         masks = torch.ones((batch_size, self.action_space.n), dtype=torch.float32)
 

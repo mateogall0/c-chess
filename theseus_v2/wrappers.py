@@ -314,7 +314,7 @@ class AlphaZeroChessWrapper(gym.Wrapper):
         return closest_move
 
     @property
-    def board(self):
+    def board(self) -> chess.Board:
         return self.env.get_board()
 
     def reset(self, fen=None):
@@ -349,21 +349,21 @@ class AlphaZeroChessWrapper(gym.Wrapper):
 class AlphaZeroWrapper2(gym.Wrapper):
     def step(self, action):
         if action not in self.env.legal_actions:
-            print('ilegal')
-            move = self.choose_legal_action(action)
+            print('Illegal action taken, stoping current episode.')
+            return None, -0.01, True, {}
         else:
             move = action
         obs, reward, done, info = self.env.step(move)
-        if info == None: info = {}
+        if info is None: info = {}
         if not done:
-            _, _, rdone, _ = self.env.step(random.choice(self.env.legal_actions)) # random move for black
+            obs, _, rdone, _ = self.env.step(random.choice(self.env.legal_actions)) # random move for black
             if rdone:
                 reward = -1.0
                 done = True
         return obs, reward, done, info
     
-    def observation(self, obs):
-        return self.env.observation(obs)
+    def observation(cls, obs):
+        return cls.env.observation(obs)
 
     @property
     def board(self):
@@ -405,12 +405,18 @@ class ChessWrapper2(ChessWrapper):
         try:
             move_uci = self.index_to_move[int(action)]
         except KeyError:
-            return None, -0.5, True, {}
+            print('Out of bounds move chosen')
+            return None, -0.05, True, {}
         move = chess.Move.from_uci(move_uci)
         obs, reward, done, info = self.env.step(move)
         if info is None: info = {}
-        if self.evaluator:
-            reward = self.evaluator.simple_evaluation(done, self.board)
+        #if self.evaluator:
+        #    reward = self.evaluator.simple_evaluation(done, self.board)
+        if not done:
+            obs, _, rdone, _ = self.env.step(random.choice(list(self.board.legal_moves)))
+            if rdone:
+                reward = -1.0
+            done = rdone
         self.update_action_space()
         return self.observation(obs), reward, done, info
 
@@ -439,7 +445,7 @@ class SyzygyWrapper(ChessWrapper2):
         try:
             move_uci = self.index_to_move[int(action)]
         except KeyError:
-            return None, -0.5, True, {}
+            return None, -0.1, True, {}
         move = chess.Move.from_uci(move_uci)
         obs, _, _, info = self.env.step(move)
         if info is None: info = {}

@@ -37,9 +37,10 @@ class Engine:
             verbose=1,
             seed=2,
             batch_size=128,
-            learning_rate=0.0001,
+            learning_rate=0.00005,
             gamma=0.99,
             n_steps=4096,
+            ent_coef=0.1
         )
 
     def get_model(self, env=None) -> PPO:
@@ -67,7 +68,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, None)
         else:
-            env = ChessWrapper2(env, evaluator)
+            env = AlphaZeroWrapper2(env)
         return env
 
     def train(self, total_timesteps=150000) -> None:
