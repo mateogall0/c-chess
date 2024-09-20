@@ -1,43 +1,48 @@
 #!/usr/bin/env python3
 import numpy as np
 import chess
-def array_to_board(observation: np.array) -> chess.Board:
-    meta = observation[:, :, -7:]
+from gym_chess.alphazero.move_encoding import queenmoves, knightmoves, underpromotions
 
-    turn = bool(meta[0, 0, 0])
-    fullmove_number = int(meta[0, 0, 1])
-    white_kingside_castle = bool(meta[0, 0, 2])
-    white_queenside_castle = bool(meta[0, 0, 3])
-    black_kingside_castle = bool(meta[0, 0, 4])
-    black_queenside_castle = bool(meta[0, 0, 5])
-    halfmove_clock = int(meta[0, 0, 6])
+def encode_move(move: chess.Move) -> int:
+    action = queenmoves.encode(move)
 
-    board_representation = observation[:, :, :-7]
+    if action is None:
+        action = knightmoves.encode(move)
 
-    board = chess.Board(fen=None)
+    if action is None:
+        action = underpromotions.encode(move)
 
-    for row in range(8):
-        for col in range(8):
-            piece = board_representation[row, col]
-            if piece.any():
-                piece_type = np.argmax(piece[:6]) + 1
-                color = bool(piece[6])
-                board.set_piece_at(chess.square(col, row), chess.Piece(piece_type, color))
+    if action is None:
+        raise ValueError(f"{move} is not a valid move")
 
-    board.turn = turn
-    board.fullmove_number = fullmove_number
-    board.halfmove_clock = halfmove_clock
+    return action
 
-    castling_rights = 0
-    if white_kingside_castle:
-        castling_rights |= chess.BB_H1
-    if white_queenside_castle:
-        castling_rights |= chess.BB_A1
-    if black_kingside_castle:
-        castling_rights |= chess.BB_H8
-    if black_queenside_castle:
-        castling_rights |= chess.BB_A8
+def decode_move(action: int, board: chess.Board) -> chess.Move:
+    turn = chess.WHITE
+    move = queenmoves.decode(action)
+    is_queen_move = move is not None
 
-    board.castling_rights = castling_rights
+    if not move:
+        move = knightmoves.decode(action)
 
-    return board
+    if not move:
+        move = underpromotions.decode(action)
+
+    if not move:
+        raise ValueError(f"{action} is not a valid action")
+
+    if is_queen_move:
+        to_rank = chess.square_rank(move.to_square)
+        is_promoting_move = (
+            (to_rank == 7 and turn == chess.WHITE) or 
+            (to_rank == 0 and turn == chess.BLACK)
+        )
+
+
+        piece = board.piece_at(move.from_square)
+        is_pawn = piece.piece_type == chess.PAWN
+
+        if is_pawn and is_promoting_move:
+            move.promotion = chess.QUEEN
+
+    return move

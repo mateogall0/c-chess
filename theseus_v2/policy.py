@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-import torch
+import torch, chess
 from stable_baselines3.ppo import MlpPolicy
-from theseus_v2.wrappers import ChessWrapper2, AlphaZeroWrapper2
+from theseus_v2.wrappers import TheseusChessWrapper, AlphaZeroWrapper2
+from theseus_v2.board import encode_move
+
 
 class CustomPolicy(MlpPolicy):
     def forward(self, obs: torch.Tensor, deterministic: bool = False) -> tuple:
@@ -25,13 +27,13 @@ class CustomPolicy(MlpPolicy):
 
 
     def get_action_mask(self, obs):
-        print(obs.shape)
         batch_size = len(obs)
         masks = torch.ones((batch_size, self.action_space.n), dtype=torch.float32)
 
         for i in range(batch_size):
-            b, _ = ChessWrapper2.array_to_board(obs[i])
-            masks[i, :len(list(b.legal_moves))] = 0
+            _, moves = TheseusChessWrapper.array_to_board(obs[i])
+            for move in moves:
+                masks[i, encode_move(chess.Move.from_uci(move))] = 0
         return masks
 
     def predict(self, obs, a, b, deterministic=False):

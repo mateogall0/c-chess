@@ -3,7 +3,14 @@ import gym, gym_chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
-from theseus_v2.wrappers import ChessWrapper, SyzygyWrapper, AlphaZeroChessWrapper, AlphaZeroWrapper2, ChessWrapper2
+from theseus_v2.wrappers import (
+    ChessWrapper,
+    SyzygyWrapper,
+    AlphaZeroChessWrapper,
+    AlphaZeroWrapper2,
+    ChessWrapper2,
+    TheseusChessWrapper,
+)
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomPolicy
@@ -68,7 +75,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, None)
         else:
-            env = AlphaZeroWrapper2(env)
+            env = TheseusChessWrapper(env, None)
         return env
 
     def train(self, total_timesteps=150000) -> None:

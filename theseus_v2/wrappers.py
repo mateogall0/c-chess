@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import gym, json
 import numpy as np
 from gym import spaces
-import chess, gym, random
+import chess, gym, random, json
 import chess.pgn
 from typing import Tuple
 from theseus_v2.config import DEBUG, input_shape, reward_factor
+from theseus_v2.board import decode_move
 
 
 class ChessWrapper(gym.ObservationWrapper):
@@ -464,3 +464,21 @@ class SyzygyWrapper(ChessWrapper2):
         if self.current_position_index >= len(self.positions_expected):
             self.current_position_index = 0
         return self.observation(self.env._board)
+
+
+class TheseusChessWrapper(ChessWrapper2):
+    max_moves = 4672 # AlphaZero action space
+
+    def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
+        """
+        """
+        move = decode_move(action, self.board)
+        obs, reward, done, info = self.env.step(move)
+        if info is None: info = {}
+        if not done:
+            obs, _, rdone, _ = self.env.step(random.choice(list(self.board.legal_moves)))
+            if rdone:
+                reward = -1.0
+            done = rdone
+        self.update_action_space()
+        return self.observation(obs), reward, done, info
