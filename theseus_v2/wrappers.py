@@ -478,11 +478,11 @@ class TheseusChessWrapper(ChessWrapper2):
         """
         """
         try:
-            move = decode_move(action, self.env.get_board())
+            move = decode_move(int(action), self.env.get_board())
             obs, reward, done, info = self.env.step(move)
         except Exception as e:
             print(f'Illegal action: {e}')
-            return self.reset(), -0.1, True, {}
+            return self.reset(), -0.05, True, {}
         if info is None: info = {}
         if not done:
             obs, _, rdone, _ = self.env.step(random.choice(list(self.board.legal_moves)))
