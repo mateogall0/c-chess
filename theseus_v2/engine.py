@@ -16,7 +16,7 @@ from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomPolicy
 from stable_baselines3.common.callbacks import EvalCallback
 import torch
-import numpy as np
+import numpy as np, random
 
 
 class Engine:
@@ -43,11 +43,7 @@ class Engine:
             vec_env,
             verbose=1,
             seed=2,
-            batch_size=128,
-            learning_rate=0.00005,
             gamma=0.99,
-            n_steps=4096,
-            ent_coef=0.1
         )
 
     def get_model(self, env=None) -> PPO:
@@ -57,7 +53,7 @@ class Engine:
         Returns:
             PPO: Loaded model.
         """
-        model = PPO.load(self.path, env=env, policy=CustomPolicy)
+        model = PPO.load(self.path)
         return model
 
     def make_env(self, env_id: str, evaluator=None) -> Env:
@@ -113,9 +109,10 @@ class Engine:
         obs = env.reset()
         episode_reward = 0
         done = False
-
         while not done:
-            action, _ = model.predict(torch.tensor([obs]), deterministic=True)
+            obs = np.array([obs])
+            obs = torch.tensor(obs, dtype=torch.float32)
+            action, _ = model.policy.predict(obs,None,None, True)
             obs, reward, done, _ = env.step(action)
             episode_reward += reward
             if render: env.render()

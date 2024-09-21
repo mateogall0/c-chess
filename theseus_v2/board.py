@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 import chess
-from gym_chess.alphazero.move_encoding import queenmoves, knightmoves, underpromotions
+from gym_chess.alphazero.move_encoding import utils,queenmoves, knightmoves, underpromotions
 
 def encode_move(move: chess.Move) -> int:
     action = queenmoves.encode(move)
@@ -18,7 +18,6 @@ def encode_move(move: chess.Move) -> int:
     return action
 
 def decode_move(action: int, board: chess.Board) -> chess.Move:
-    turn = chess.WHITE
     move = queenmoves.decode(action)
     is_queen_move = move is not None
 
@@ -31,6 +30,8 @@ def decode_move(action: int, board: chess.Board) -> chess.Move:
     if not move:
         raise ValueError(f"{action} is not a valid action")
 
+    turn = chess.WHITE
+    
     if is_queen_move:
         to_rank = chess.square_rank(move.to_square)
         is_promoting_move = (

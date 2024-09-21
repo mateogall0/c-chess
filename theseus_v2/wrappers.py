@@ -98,7 +98,7 @@ class ChessWrapper(gym.ObservationWrapper):
         return board_array
     
     @classmethod
-    def array_to_board(cls, board_array: np.ndarray) -> chess.Board:
+    def array_to_board(cls, board_array: np.ndarray) -> Tuple[chess.Board, list]:
         """
         Turns a model-readable array back into a chess board.
 
@@ -469,15 +469,24 @@ class SyzygyWrapper(ChessWrapper2):
 class TheseusChessWrapper(ChessWrapper2):
     max_moves = 4672 # AlphaZero action space
 
+
+    @property
+    def board(self) -> chess.Board:
+        return self.env.get_board()
+
     def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
         """
         """
-        move = decode_move(action, self.board)
-        obs, reward, done, info = self.env.step(move)
+        try:
+            move = decode_move(action, self.env.get_board())
+            obs, reward, done, info = self.env.step(move)
+        except Exception as e:
+            print(f'Illegal action: {e}')
+            return self.reset(), -0.1, True, {}
         if info is None: info = {}
         if not done:
             obs, _, rdone, _ = self.env.step(random.choice(list(self.board.legal_moves)))
-            if rdone:
+            if rdone and self.board.is_checkmate():
                 reward = -1.0
             done = rdone
         self.update_action_space()
