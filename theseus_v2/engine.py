@@ -44,6 +44,8 @@ class Engine:
             verbose=1,
             seed=2,
             gamma=0.99,
+            n_steps=8192,
+            learning_rate=0.0003,
         )
 
     def get_model(self, env=None) -> PPO:
