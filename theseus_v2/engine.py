@@ -42,9 +42,10 @@ class Engine:
         return PPO(CustomPolicy,
             vec_env,
             verbose=1,
-            seed=2,
+            seed=0,
             gamma=0.99,
-            n_steps=8192,
+            #n_steps=8192,
+            n_steps=2,
             learning_rate=0.0003,
         )
 
@@ -73,7 +74,7 @@ class Engine:
         if env_id == 'syzygy':
             env = SyzygyWrapper(env, None)
         else:
-            env = TheseusChessWrapper(env, None)
+            env = TheseusChessWrapper(env, evaluator)
         return env
 
     def train(self, total_timesteps=150000) -> None:
@@ -99,27 +100,25 @@ class Engine:
 
         model.save(self.path)
 
-    def auto_play(self, render=True) -> int:
+    def auto_play(self, render=True) -> str:
         """
         Bot-only play.
 
         Returns:
-            int: Total rewards.
+            str: Exported PGN game.
         """
-        env = self.make_env(ENV_ID, evaluator=None)
+        env = self.make_env(ENV_ID, evaluator=Evaluator())
         model = self.get_model(env)
         obs = env.reset()
-        episode_reward = 0
         done = False
         while not done:
             obs = np.array([obs])
             obs = torch.tensor(obs, dtype=torch.float32)
-            action, _ = model.policy.predict(obs,None,None, True)
-            obs, reward, done, _ = env.step(action)
-            episode_reward += reward
+            action, _ = model.policy.predict(obs, True)
+            obs, _, done, _ = env.step(action)
             if render: env.render()
 
-        return episode_reward, env.get_pgn()
+        return env.get_pgn()
 
 if __name__ == '__main__':
     """
@@ -127,5 +126,5 @@ if __name__ == '__main__':
     """
     engine = Engine()
     engine.train(total_timesteps=1)
-    r, p = engine.auto_play()
+    p = engine.auto_play()
     print(p)

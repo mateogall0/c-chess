@@ -85,15 +85,6 @@ class ChessWrapper(gym.ObservationWrapper):
             board_array[:, :, 15] = 1
         if board.has_queenside_castling_rights(chess.BLACK):
             board_array[:, :, 16] = 1
-        
-        possible_moves_layer = np.zeros((8, 8), dtype=np.float32)
-        for move in board.legal_moves:
-            from_square = move.from_square
-            from_row = chess.square_rank(from_square)
-            from_col = chess.square_file(from_square)
-            possible_moves_layer[from_row, from_col] = 1
-        
-        board_array[:, :, 17] = possible_moves_layer
 
         return board_array
     
@@ -141,17 +132,7 @@ class ChessWrapper(gym.ObservationWrapper):
         if board_array[0, 0, 16] == 1:
             board.castling_rights |= chess.BB_A8
         
-        possible_moves = []
-        for row in range(8):
-            for col in range(8):
-                if board_array[row, col, 17] == 1:
-                    from_square = chess.square(col, row)
-                    piece = board.piece_at(from_square)
-                    if piece:
-                        for move in board.legal_moves:
-                            if move.from_square == from_square:
-                                possible_moves.append(move.uci())
-        return board, possible_moves
+        return board
 
     @classmethod
     def legal_moves_to_array(cls, moves: dict, move_to_index: dict) -> np.ndarray:
@@ -463,31 +444,59 @@ class SyzygyWrapper(ChessWrapper2):
         self.current_position_index += 1
         if self.current_position_index >= len(self.positions_expected):
             self.current_position_index = 0
-        return self.observation(self.env._board)
+        return self.observation(self.board)
 
 
 class TheseusChessWrapper(ChessWrapper2):
-    max_moves = 4672 # AlphaZero action space
+    """
+    Final Chess wrapper implementation that uses the observation of
+    `ChessWrapper` along with a move encode-decode functionality
+    from the `ChessAlphaZero-v0` environment.
 
+    Attributes:
+        max_moves (int): AlphaZero action space, used as Discrete.
+    """
+    max_moves = 4672
+
+    def __init__(self,*ag,**kw) -> None:
+        super().__init__(*ag,**kw)
+        if self.evaluator is None:
+            raise ValueError('evaluator must be a chess move evaluator.')
 
     @property
     def board(self) -> chess.Board:
-        return self.env.get_board()
+        return self.env._board
 
     def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
         """
+        This method takes an action, decodes it, and attempts to apply it to
+        the current game state. If the action is valid, the environment is
+        updated and a subsqeuent move is made using `make_move_external`.
+
+        :Exceptions: If an illegal action is attempted, the environment is
+            reset, a small punishment is given, and the episode is
+            labeled as done.
         """
         try:
-            move = decode_move(int(action), self.env.get_board())
+            move = decode_move(int(action), self.board)
             obs, reward, done, info = self.env.step(move)
         except Exception as e:
             print(f'Illegal action: {e}')
             return self.reset(), -0.05, True, {}
         if info is None: info = {}
         if not done:
-            obs, _, rdone, _ = self.env.step(random.choice(list(self.board.legal_moves)))
+            # Move for black pieces
+            obs, _, rdone, _ = self.env.step(self.make_move_external(self.board))
             if rdone and self.board.is_checkmate():
-                reward = -1.0
+                reward = -1.0 # loss punishment
             done = rdone
         self.update_action_space()
         return self.observation(obs), reward, done, info
+
+    def make_move_external(self, board: chess.Board, depth=1) -> chess.Move:
+        """
+        Make an external move from the evaluator, uses default engine given by
+        the evaluator.
+        """
+        move = self.evaluator.make_move(board, depth=depth)
+        return move

@@ -223,3 +223,8 @@ class Evaluator:
     def simple_evaluation(self, done: bool, board: chess.Board) -> float:
         if done: return 1.0
         return 0.0
+
+    def make_move(self, board:chess.Board, depth=1, engine_id='stockfish') -> chess.Move:
+        engine = self.external[engine_id]
+        move = engine.play(board, chess.engine.Limit(depth=depth))
+        return move.move

@@ -17,29 +17,29 @@ class CustomPolicy(MlpPolicy):
         masked_logits[action_mask == 0] = -float('inf')
 
         masked_probs = torch.softmax(masked_logits, dim=1)
-        masked_probs /= masked_probs.sum(dim=1, keepdim=True)
-
+        #masked_probs /= masked_probs.sum(dim=1, keepdim=True)
         if deterministic:
             actions = masked_probs.argmax(dim=1)
         else:
-            actions = masked_probs.multinomial(num_samples=1).squeeze()
+            try:
+                actions = masked_probs.multinomial(num_samples=1).squeeze()
+            except:
+                actions = masked_probs.argmax(dim=1)
 
         log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1))).squeeze()
 
         return actions, values, log_prob
-
-
 
     def get_action_mask(self, obs):
         batch_size = len(obs)
         masks = torch.zeros((batch_size, self.action_space.n), dtype=torch.float32)
 
         for i in range(batch_size):
-            b, _ = TheseusChessWrapper.array_to_board(obs[i])
+            b = TheseusChessWrapper.array_to_board(obs[i])
             for move in b.legal_moves:
                 masks[i, encode_move(move)] = 1
         return masks
 
-    def predict(self, obs, a, b, deterministic=False):
+    def predict(self, obs, deterministic=False):
         actions, _, _ = self.forward(obs, deterministic)
         return actions, _
