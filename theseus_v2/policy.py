@@ -16,8 +16,18 @@ class CustomPolicy(MlpPolicy):
         masked_logits = distribution.distribution.logits.clone()
         masked_logits[action_mask == 0] = -float('inf')
 
+        masked_logits = torch.clamp(masked_logits, min=-1e10, max=1e10)
         masked_probs = torch.softmax(masked_logits, dim=1)
         #masked_probs /= masked_probs.sum(dim=1, keepdim=True)
+        masked_probs[torch.isnan(masked_probs)] = 0.0
+        masked_probs_sum = masked_probs.sum(dim=1, keepdim=True)
+
+        zero_sum_mask = masked_probs_sum == 0.0
+        if zero_sum_mask.any():
+            print("Warning: zero probability sum detected, handling fallback")
+            masked_probs[zero_sum_mask] = action_mask[zero_sum_mask] / action_mask[zero_sum_mask].sum(dim=1, keepdim=True)
+
+        masked_probs /= masked_probs.sum(dim=1, keepdim=True)
         if deterministic:
             actions = masked_probs.argmax(dim=1)
         else:
@@ -26,7 +36,7 @@ class CustomPolicy(MlpPolicy):
             except:
                 actions = masked_probs.argmax(dim=1)
 
-        log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1))).squeeze()
+        log_prob = torch.log(masked_probs.gather(1, actions.unsqueeze(1)).clamp(min=1e-10)).squeeze()
 
         return actions, values, log_prob
 

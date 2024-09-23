@@ -4,7 +4,7 @@ from gym import spaces
 import chess, gym, random, json
 import chess.pgn
 from typing import Tuple
-from theseus_v2.config import DEBUG, input_shape, reward_factor
+from theseus_v2.config import DEBUG, input_shape, reward_factor, alphazero_action_space
 from theseus_v2.board import decode_move
 
 
@@ -414,6 +414,7 @@ class ChessWrapper2(ChessWrapper):
         return mask
 
 class SyzygyWrapper(ChessWrapper2):
+    max_moves = alphazero_action_space
     def __init__(self, env, evaluator, path='data/val_data/data.json') -> None:
         self.current_position_index = 0
         with open(path, 'r') as file:
@@ -424,13 +425,13 @@ class SyzygyWrapper(ChessWrapper2):
         """
         """
         try:
-            move_uci = self.index_to_move[int(action)]
-        except KeyError:
-            return None, -0.1, True, {}
-        move = chess.Move.from_uci(move_uci)
-        obs, _, _, info = self.env.step(move)
+            move = decode_move(int(action), self.board)
+            obs, _, _, info = self.env.step(move)
+        except Exception as e:
+            print(f'Illegal action for Syzygy puzzle: {e}')
+            return self.reset(), -0.1, True, {}
         if info is None: info = {}
-        if move_uci == self.positions_expected[self.current_position_index][1]:
+        if str(move) == self.positions_expected[self.current_position_index][1]:
             reward = 1.0
         else:
             reward = -1.0
@@ -456,7 +457,7 @@ class TheseusChessWrapper(ChessWrapper2):
     Attributes:
         max_moves (int): AlphaZero action space, used as Discrete.
     """
-    max_moves = 4672
+    max_moves = alphazero_action_space
 
     def __init__(self,*ag,**kw) -> None:
         super().__init__(*ag,**kw)
@@ -482,7 +483,7 @@ class TheseusChessWrapper(ChessWrapper2):
             obs, reward, done, info = self.env.step(move)
         except Exception as e:
             print(f'Illegal action: {e}')
-            return self.reset(), -0.05, True, {}
+            return self.reset(), -0.1, True, {}
         if info is None: info = {}
         if not done:
             # Move for black pieces
