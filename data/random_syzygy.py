@@ -33,7 +33,7 @@ def count_pieces(board):
 def remove_redundancies(arr: list) -> list:
     return list(set(arr))
 
-def random_fen():
+def random_fen(turn=chess.WHITE):
     limit=np.random.randint(3, 8)
     board = chess.Board()
     while 1:
@@ -46,14 +46,15 @@ def random_fen():
         pieces = count_pieces(board)
         if pieces <= limit:
             break
+    board.turn = turn
     return board.fen(), board.is_game_over(), pieces
 
-def random_syzygy(verbose=True, iterations=1400):
+def random_syzygy(verbose=True, iterations=1400, turn=chess.WHITE):
     fen_codes_readable = []
     for i in range(iterations):
         if verbose:
             print('Iteration:', i)
-        fen, is_over, _ = random_fen()
+        fen, is_over, _ = random_fen(turn)
         if not is_over:
             fen_codes_readable.append(fen)
     fen_codes_readable = remove_redundancies(fen_codes_readable)
@@ -145,6 +146,6 @@ def store(data: list) -> None:
         json.dump(data, file)
 
 if __name__ == '__main__':
-    fen_codes, fen_codes_readable = random_syzygy(iterations=3500)
+    fen_codes, fen_codes_readable = random_syzygy(iterations=14000, turn=chess.WHITE)
     output = get_syzygy_output_v2(fen_codes, fen_codes_readable)
     store(output)
