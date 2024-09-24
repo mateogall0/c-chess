@@ -44,9 +44,8 @@ def random_fen(turn=chess.WHITE):
         random_move = np.random.choice(legal_moves)
         board.push(random_move)
         pieces = count_pieces(board)
-        if pieces <= limit:
+        if pieces <= limit and board.turn == turn:
             break
-    board.turn = turn
     return board.fen(), board.is_game_over(), pieces
 
 def random_syzygy(verbose=True, iterations=1400, turn=chess.WHITE):
