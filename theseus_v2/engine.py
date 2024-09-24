@@ -114,7 +114,7 @@ class Engine:
         while not done:
             obs = np.array([obs])
             obs = torch.tensor(obs, dtype=torch.float32)
-            action, _ = model.policy.predict(obs, True)
+            action = model.policy.predict(obs, True)
             obs, _, done, _ = env.step(action)
             if render: env.render()
 
