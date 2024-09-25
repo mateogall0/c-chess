@@ -2,8 +2,30 @@
   <img src="assets/logo-no-bg.png" alt="Theseus logo" height=250/>
 </p>
 
+# v2
+Second iteration of the Theseus Chess Bot. Working on top of OpenAI's Stable Baselines 3 using Gymnasium environments.
 
-Theseus is a Machine Learning model built using the Keras module to perform Chess moves per given position.
+## Dependencies
+Second version works on Python 3.9.
+### Conda
+You can install the dependencies using Anaconda. To install anaconda you can follow this link: <a href="https://www.anaconda.com/download">Conda installation guide</a>. 
+
+Executing the following command on the root of the repository will automatically generate a Conda environment with all the dependencies for Theseus:
+
+```bash
+$ conda env create -f env2.yml
+```
+
+### PIP
+Alternatively you can run the following command:
+```bash
+pip install -r requirements.txt
+```
+
+### External evaluators
+This project uses compiled external engines for evaluations and for dummy agents. To install them, execute the <code>compile_external_evaluators</code> script.
+
+# v1
 
 <p align="center">
   <img src="assets/logo-py.png" height=80/>
