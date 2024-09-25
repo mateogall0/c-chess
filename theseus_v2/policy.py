@@ -84,7 +84,7 @@ class CustomPolicy(MlpPolicy):
         # ensures they sum to 1 for each observation
         masked_probs /= masked_probs.sum(dim=1, keepdim=True)
 
-        """if deterministic:
+        if deterministic:
             # greedy choice for highest probability
             actions = masked_probs.argmax(dim=1)
         else:
@@ -94,8 +94,7 @@ class CustomPolicy(MlpPolicy):
                 # in case of an error during sampling fall back to
                 # selecting the action with the highest probability
                 # deterministically
-                actions = masked_probs.argmax(dim=1)"""
-        actions = masked_probs.argmax(dim=1)
+                actions = masked_probs.argmax(dim=1)
 
         # for PPO objective, compute the log probability of the
         # selected actions
