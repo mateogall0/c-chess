@@ -14,10 +14,13 @@ from theseus_v2.wrappers import (
 from theseus_v2.evaluate import Evaluator
 from theseus_v2.config import ENV_ID, DEBUG, SYZYGY_ONLY, NO_SYZYGY, NUM_ENVS
 from theseus_v2.policy import CustomPolicy
-from stable_baselines3.common.callbacks import EvalCallback
 import torch
 import numpy as np, random
-from theseus_v2.board import decode_move
+from stable_baselines3.common.callbacks import (
+    CallbackList,
+    CheckpointCallback,
+    EvalCallback,
+)
 
 
 class Engine:
@@ -40,6 +43,7 @@ class Engine:
         Returns:
             PPO: Created PPO model.
         """
+
         return PPO(CustomPolicy,
             vec_env,
             verbose=1,
@@ -47,7 +51,8 @@ class Engine:
             gamma=0.99,
             n_steps=8192,
             learning_rate=0.0001,
-            n_epochs=50,
+            n_epochs=30,
+            tensorboard_log='ppo_tensorboard/',
         )
 
     def get_model(self, env=None) -> PPO:
@@ -77,6 +82,30 @@ class Engine:
         else:
             env = TheseusChessWrapper(env, evaluator)
         return env
+    
+    def get_callbacks(self,) -> CallbackList:
+        ev = Evaluator()
+        eval_env = self.make_env(ENV_ID, ev)
+        checkpoint_callback = CheckpointCallback(
+            save_freq=10000,
+            save_path='./models/',
+            name_prefix='ppo_model',
+        )
+        eval_callback = EvalCallback(
+            eval_env,
+            best_model_save_path='./logs/',
+            log_path='./logs/',
+            eval_freq=10000,
+            n_eval_episodes=5,
+            deterministic=True,
+            render=False,
+            verbose=1,
+        )
+        callbacks = CallbackList([
+            checkpoint_callback,
+            eval_callback,
+        ])
+        return callbacks
 
     def train(self, total_timesteps=150000) -> None:
         """
@@ -86,8 +115,9 @@ class Engine:
             total_timesteps (int): Number of timesteps to train the model.
         """
         envs = []
+        ev = Evaluator()
         syzygy_env = lambda: self.make_env('syzygy', None)
-        training_env = lambda: self.make_env(ENV_ID, Evaluator())
+        training_env = lambda: self.make_env(ENV_ID, ev)
         if SYZYGY_ONLY:
             envs.append(syzygy_env)
         elif NO_SYZYGY:
@@ -97,7 +127,9 @@ class Engine:
             envs = [training_env, syzygy_env]
         vec_env = DummyVecEnv(envs)
         model = self.create_model(vec_env)
-        model.learn(total_timesteps=total_timesteps)
+        callback_list = self.get_callbacks()
+        model.learn(total_timesteps=total_timesteps,
+                    callback=callback_list)
 
         model.save(self.path)
 
@@ -115,11 +147,15 @@ class Engine:
         while not done:
             obs = np.array([obs])
             obs = torch.tensor(obs, dtype=torch.float32)
-            action = model.policy.predict(obs, True)
+            action = self.predict(model, obs)
             obs, _, done, _ = env.step(action)
             if render: env.render()
 
         return env.get_pgn()
+
+    def predict(self, model: PPO, obs: torch.Tensor) -> torch.Tensor:
+        action, _ = model.policy.predict(obs, None, None, True)
+        return action
 
     def play_against(self, render=True) -> str:
         """
@@ -135,7 +171,7 @@ class Engine:
         while not done:
             obs = np.array([obs])
             obs = torch.tensor(obs, dtype=torch.float32)
-            action = model.policy.predict(obs, True)
+            action = self.predict(model, obs)
             obs, _, done, _ = env.step(action, bot_only=False)
             if render: env.render()
             retry = True

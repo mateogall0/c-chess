@@ -120,9 +120,10 @@ class CustomPolicy(MlpPolicy):
                 masks[i, encode_move(move)] = 1
         return masks
 
-    def predict(self, obs: torch.Tensor, deterministic=False):
+    def predict(self, obs: torch.Tensor, a, b, deterministic=False):
         """
         Predict action for given observation.
         """
+        obs = torch.tensor(obs, dtype=torch.float32)
         actions, _, _ = self.forward(obs, deterministic)
-        return actions
+        return actions, None
