@@ -25,7 +25,7 @@ pip install -r requirements.txt
 ### External evaluators
 This project uses compiled external engines for evaluations and for dummy agents. To install them, execute the <code>compile_external_evaluators</code> script.
 
-Alterna
+# v1
 
 <p align="center">
   <img src="assets/logo-py.png" height=80/>
