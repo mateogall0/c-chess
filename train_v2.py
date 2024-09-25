@@ -5,9 +5,9 @@ if __name__ == '__main__':
     """
     Used mainly for demonstration purposes
     """
-    engine.train(total_timesteps=1002768)
+    #engine.train(total_timesteps=50000)
     p = engine.auto_play(render=False)
     print(p)
-    p = engine.auto_play(render=False)
+    p = engine.play_against()
     print(p)
 

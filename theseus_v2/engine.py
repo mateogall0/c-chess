@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import gym, gym_chess
+import gym, gym_chess, chess
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from gym import Env
@@ -17,6 +17,7 @@ from theseus_v2.policy import CustomPolicy
 from stable_baselines3.common.callbacks import EvalCallback
 import torch
 import numpy as np, random
+from theseus_v2.board import decode_move
 
 
 class Engine:
@@ -42,10 +43,10 @@ class Engine:
         return PPO(CustomPolicy,
             vec_env,
             verbose=1,
-            seed=0,
+            seed=1,
             gamma=0.99,
             n_steps=8192,
-            learning_rate=0.0003,
+            learning_rate=0.0001,
             n_epochs=50,
         )
 
@@ -116,6 +117,41 @@ class Engine:
             obs = torch.tensor(obs, dtype=torch.float32)
             action = model.policy.predict(obs, True)
             obs, _, done, _ = env.step(action)
+            if render: env.render()
+
+        return env.get_pgn()
+
+    def play_against(self, render=True) -> str:
+        """
+        Play against bot.
+
+        Returns:
+            str: Exported PGN game.
+        """
+        env = self.make_env(ENV_ID, evaluator=Evaluator())
+        model = self.get_model(env)
+        obs = env.reset()
+        done = False
+        while not done:
+            obs = np.array([obs])
+            obs = torch.tensor(obs, dtype=torch.float32)
+            action = model.policy.predict(obs, True)
+            obs, _, done, _ = env.step(action, bot_only=False)
+            if render: env.render()
+            retry = True
+            b = TheseusChessWrapper.array_to_board(obs)
+            while retry:
+                moves = list(b.legal_moves)
+                move = input('Make a move: ')
+                try:
+                    move = chess.Move.from_uci(move)
+                    if move not in moves:
+                        raise Exception
+                    obs, _, done, _ = env.env.step(move)
+                    obs = env.observation(obs)
+                    retry = False
+                except:
+                    print('Illegal move, try again')
             if render: env.render()
 
         return env.get_pgn()

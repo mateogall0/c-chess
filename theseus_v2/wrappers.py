@@ -89,7 +89,7 @@ class ChessWrapper(gym.ObservationWrapper):
         return board_array
     
     @classmethod
-    def array_to_board(cls, board_array: np.ndarray) -> Tuple[chess.Board, list]:
+    def array_to_board(cls, board_array: np.ndarray) -> chess.Board:
         """
         Turns a model-readable array back into a chess board.
 
@@ -468,7 +468,7 @@ class TheseusChessWrapper(ChessWrapper2):
     def board(self) -> chess.Board:
         return self.env._board
 
-    def step(self, action: np.int64) -> Tuple[np.ndarray, float, bool, dict]:
+    def step(self, action: np.int64, bot_only=True) -> Tuple[np.ndarray, float, bool, dict]:
         """
         This method takes an action, decodes it, and attempts to apply it to
         the current game state. If the action is valid, the environment is
@@ -485,7 +485,7 @@ class TheseusChessWrapper(ChessWrapper2):
             print(f'Illegal action: {e}')
             return self.reset(), -0.1, True, {}
         if info is None: info = {}
-        if not done:
+        if not done and bot_only:
             # Move for black pieces
             obs, _, rdone, _ = self.env.step(self.make_move_external(self.board))
             if rdone and self.board.is_checkmate():
